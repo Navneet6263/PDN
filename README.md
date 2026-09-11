@@ -1,0 +1,113 @@
+# Terra Studios — Fashion catalog & admin
+
+Customer storefront and admin panel rebuilt from the supplied Fashion Storefront design and photos.
+
+- Frontend: Next.js App Router, React, TypeScript, Tailwind CSS.
+- Backend: separate Node.js / Express API, written in TypeScript.
+- Database: PostgreSQL through Prisma ORM. No MongoDB or SQLite dependency.
+- Product photos: Cloudinary; uploads are resized and compressed to WebP before upload.
+- Scope: searchable storefront, product details, customer accounts, saved carts, photo reviews, delivery-address checkout, festival collections and admin controls for products, Top 10/search placement, scheduled banners, categories, stock, store settings, team permissions, support records and manually recorded sales reports. Payments and order placement are not enabled.
+
+See [ADMIN-GUIDE.md](ADMIN-GUIDE.md) for placement rules, banner scheduling, default policies and team permissions.
+
+The compact Style Studio banner opens an optional quiz and recommendations dialog; it never opens automatically. It recommends office, campus, everyday and festive looks from the actual catalog. Office plans cover Monday–Friday with an optional Saturday. Customers can save their preferences in this browser, skip/reopen the quiz, remix picks or clear preferences. Admin occasion/style controls are under Top 10 & Search. `scripts/load-office-looks.ts` refreshes three sample listings and adds three office samples using six generated photos; the local preview then has 33 products. Image prompts and saved sources are documented in [OFFICE-IMAGE-NOTES.md](OFFICE-IMAGE-NOTES.md).
+
+## Run locally
+
+Use Node.js 24 LTS and PostgreSQL. On PowerShell, use `npm.cmd` if script execution policy blocks `npm`.
+
+```sh
+npm ci
+npm run setup
+```
+
+Setup creates `.env` and displays a random admin password once. Save it. It never overwrites an existing `.env`.
+
+Edit `.env`:
+
+```dotenv
+DATABASE_URL=postgresql://USER:PASSWORD@HOST:5432/terra_store
+IMAGE_STORAGE=cloudinary
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+SITE_URL=http://localhost:3000
+API_URL=http://127.0.0.1:4000
+```
+
+Create the empty PostgreSQL database first, or use the connection string from your managed provider. URL-encode special characters in database passwords. Cloudinary credentials are available in your product environment settings; they belong only on the backend.
+
+```sh
+npm run db:generate
+npm run db:migrate
+npm run seed
+npm run dev
+```
+
+Open `http://localhost:3000` and `http://localhost:3000/admin`. Default admin email: `admin@terra.local`; password: the value shown by setup. Email can be changed in `.env`.
+
+New installations start empty. `npm run seed` only checks the database connection. For the requested populated design preview, `npx tsx scripts/load-sample-store.ts` adds 30 editable sample products across seven departments, configures the homepage, and backs up existing store content under `data/backups`. It preserves existing products and does not overwrite an existing sample product when rerun. This command has already been run in the current local workspace. Sample photos and specifications are representative; replace them with verified merchandise details before selling. Test fixtures under `tests/fixtures` remain separate from this preview catalog.
+
+### Without an installed PostgreSQL server
+
+For development only, `npm run db:dev` starts Prisma's local PostgreSQL-compatible development database (PGlite) on port 5432. Its first run downloads a tool. Keep that terminal open, copy the `postgres://...` connection string it prints into `DATABASE_URL`, then run migration and seed in another terminal. Use normal PostgreSQL/Neon/Supabase for hosting.
+
+Start the database again after stopping all servers or restarting your computer. `npm run dev` starts only the frontend and backend; the local database needs its own running terminal. If the catalog is unavailable, run `npx tsx scripts/check-db.ts` to check the database connection without displaying credentials.
+
+For offline UI development, `IMAGE_STORAGE=local` saves optimized uploads under `uploads/`. Hosted deployment must use Cloudinary. The application refuses to start in Cloudinary mode when credentials are missing.
+
+## Product management
+
+From admin, choose **Add product**. Enter the name, brand, category, description, fabric, care, selling price, MRP, stock, sizes and colors. Upload 1–8 images (JPEG/PNG/WebP, maximum 5 MB each); select the cover image.
+
+The **What's in the package** section accepts multiple items and quantities, such as Kurta × 1, Trousers × 1, Dupatta × 1. These are stored as related PostgreSQL records and shown on the customer product page. Saving the product and its package contents is atomic.
+
+**Policies & additional details** contains per-product exchange rules, return/refund rules, shipping/delivery information, warranty/guarantee and additional information. Enter the actual rules for your store. Saved text appears on the product page; blank fields are hidden. These fields publish information, not a return/exchange request processing system.
+
+To remove unchanged products from the previous demo catalog, run `npx tsx scripts/remove-demo-products.ts`. It compares all original demo fields, preserves edited products, writes a backup in `data/backups/`, and deletes only unchanged demo records. It does not clear the whole database.
+
+Enable **Published on storefront** to make it public. Drafts are excluded from public APIs, product pages and the sitemap. **Feature this product** prioritizes it in the catalog. Stock of zero displays an out-of-stock label. Inventory edits use the product editor. Stock is per product, not per size/color variant.
+
+Deleting a product removes its database record and packet records. Uploaded Cloudinary assets are intentionally retained to avoid deleting images reused elsewhere. Periodically remove unused images in Cloudinary to keep storage usage down; cancelled uploads can also leave unused assets.
+
+## SEO
+
+Public pages render product content on the server. Product titles/descriptions, canonical URLs, Open Graph metadata, Product JSON-LD, robots.txt and a dynamic sitemap are included. Admin is marked noindex. Set the real `SITE_URL` before building/deploying. New public products appear in the sitemap automatically. This provides SEO infrastructure; ranking is not guaranteed.
+
+## Production
+
+```sh
+npm ci
+npm run db:generate
+npm run db:migrate
+npm run build
+npm start
+```
+
+`npm start` runs Next.js on port 3000 and the API on port 4000. Put HTTPS/reverse proxy in front of Next.js. Set `COOKIE_SECURE=true` and `SITE_URL=https://your-domain.com`. Keep the API private when both processes run on the same host. The API's origin check must match the public frontend origin exactly.
+
+For separate services, run `npm run start:api` for Express (`API_HOST=0.0.0.0` and the provider's `PORT`) and `npm run start:web` for Next.js. Set `API_URL` on the frontend to the API's HTTPS address **before build** and at runtime. Browser calls still use the frontend's `/api` proxy, keeping cookies on the frontend domain. Do not set an API-only `PORT` on the combined process setup.
+
+Cloudinary keys and `ADMIN_PASSWORD_HASH` stay on the API server. `DATABASE_URL` stays on the API/migration environment. If your database provider gives pooled and direct URLs, use the pooler in `DATABASE_URL` and the direct connection in `DIRECT_URL` for migrations. Follow the provider's TLS connection settings; never disable certificate verification for hosted databases.
+
+Keep `.env`, `node_modules`, `.next`, `generated`, local uploads and development database files out of the source ZIP and Git. Prisma Client is recreated by `npm run db:generate` or `npm run build`.
+
+## Verification
+
+```sh
+npm run typecheck
+npm run build
+npm test
+```
+
+API tests require `TEST_DATABASE_URL` pointing at a development PostgreSQL database; the default is `postgresql://postgres:postgres@localhost:5432/terra_store`. They create a uniquely named `terra_test_*` schema and remove only that schema. Do not point tests at production. The suite checks auth/cookies, cross-origin rejection, drafts, packet contents, persistent records, uniqueness, validation, upload processing, deletion and rate limiting.
+
+For browser checks, start the app and set `E2E_PASSWORD` to the local admin password, then run `npm run test:e2e`. This creates and deletes a temporary product. Browser tests use installed Google Chrome and save screenshots under `test-results/`.
+
+Application source files are split into modules of at most 300 lines. Prisma-generated files and dependency lockfiles are machine-generated and excluded from that limit.
+
+Verification covers TypeScript, production build, API integration and Chrome storefront/admin flows. Live Cloudinary upload and your hosted PostgreSQL connection still need verification with your own credentials.
+
+See [HOSTING.md](HOSTING.md) for budget hosting and image storage notes.
+
+Customer accounts, guest-cart merging, photo reviews, spelling suggestions and checkout are documented in [SHOPPING-GUIDE.md](SHOPPING-GUIDE.md). Checkout saves an address and reviews the bag; payments and order placement are not enabled.

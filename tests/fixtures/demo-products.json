@@ -1,0 +1,293 @@
+[
+  {
+    "slug": "banarasi-silk-saree",
+    "name": "Banarasi Silk Saree",
+    "brand": "Terra Ethnics",
+    "category": "women",
+    "subCategory": "Sarees",
+    "price": 4999,
+    "originalPrice": 8999,
+    "image": "/images/products/banarasi-saree.jpg",
+    "gallery": ["/images/products/banarasi-saree.jpg"],
+    "description": "Pure Banarasi silk saree with handwoven gold zari butis and a rich brocade pallu. Comes with a matching unstitched blouse piece. Perfect for weddings and festive occasions.",
+    "sizes": ["Free Size"],
+    "colors": ["Maroon", "Royal Blue", "Emerald"],
+    "stock": 24,
+    "material": "See product description",
+    "care": "Follow the care label supplied with the garment.",
+    "packageContents": [
+      {
+        "name": "Saree",
+        "quantity": 1
+      },
+      {
+        "name": "Unstitched blouse piece",
+        "quantity": 1
+      }
+    ],
+    "featured": true,
+    "published": true,
+    "seoTitle": "",
+    "seoDescription": ""
+  },
+  {
+    "slug": "chikankari-kurta",
+    "name": "Chikankari Kurta Set",
+    "brand": "Terra Ethnics",
+    "category": "men",
+    "subCategory": "Kurtas",
+    "price": 2199,
+    "originalPrice": 3499,
+    "image": "/images/products/chikankari-kurta.jpg",
+    "gallery": ["/images/products/chikankari-kurta.jpg"],
+    "description": "Hand-embroidered Lucknowi chikankari kurta in breathable cotton, paired with a classic white churidar. Subtle shadow-work motifs make it ideal for festive days and summer weddings.",
+    "sizes": ["XS", "S", "M", "L", "XL", "XXL"],
+    "colors": ["Ivory", "Powder Blue"],
+    "stock": 24,
+    "material": "See product description",
+    "care": "Follow the care label supplied with the garment.",
+    "packageContents": [
+      {
+        "name": "Kurta",
+        "quantity": 1
+      },
+      {
+        "name": "Churidar",
+        "quantity": 1
+      }
+    ],
+    "featured": false,
+    "published": true,
+    "seoTitle": "",
+    "seoDescription": ""
+  },
+  {
+    "slug": "bridal-lehenga",
+    "name": "Embroidered Bridal Lehenga",
+    "brand": "Terra Ethnics",
+    "category": "women",
+    "subCategory": "Lehengas",
+    "price": 14999,
+    "originalPrice": 24999,
+    "image": "/images/products/bridal-lehenga.jpg",
+    "gallery": ["/images/products/bridal-lehenga.jpg"],
+    "description": "A show-stopping bridal lehenga in deep red velvet-touch fabric, covered in gold zardozi embroidery with a matching choli and soft net dupatta. Semi-stitched for a perfect fit.",
+    "sizes": ["XS", "S", "M", "L", "XL", "XXL"],
+    "colors": ["Bridal Red", "Wine"],
+    "stock": 24,
+    "material": "See product description",
+    "care": "Follow the care label supplied with the garment.",
+    "packageContents": [
+      {
+        "name": "Lehenga",
+        "quantity": 1
+      },
+      {
+        "name": "Choli",
+        "quantity": 1
+      },
+      {
+        "name": "Dupatta",
+        "quantity": 1
+      }
+    ],
+    "featured": true,
+    "published": true,
+    "seoTitle": "",
+    "seoDescription": ""
+  },
+  {
+    "slug": "navy-sherwani",
+    "name": "Royal Navy Sherwani",
+    "brand": "Terra Ethnics",
+    "category": "men",
+    "subCategory": "Sherwanis",
+    "price": 9999,
+    "originalPrice": 15999,
+    "image": "/images/products/navy-sherwani.jpg",
+    "gallery": ["/images/products/navy-sherwani.jpg"],
+    "description": "A regal navy sherwani with an embroidered mandarin collar, gold crest buttons and a brocade pocket square. Tailored fit with premium lining for all-day comfort at weddings.",
+    "sizes": ["S", "M", "L", "XL"],
+    "colors": ["Navy", "Black"],
+    "stock": 4,
+    "material": "See product description",
+    "care": "Follow the care label supplied with the garment.",
+    "packageContents": [
+      {
+        "name": "Sherwani",
+        "quantity": 1
+      },
+      {
+        "name": "Pocket square",
+        "quantity": 1
+      }
+    ],
+    "featured": true,
+    "published": true,
+    "seoTitle": "",
+    "seoDescription": ""
+  },
+  {
+    "slug": "printed-cotton-kurti",
+    "name": "Printed Cotton Kurti (Pack of 3)",
+    "brand": "Terra Ethnics",
+    "category": "women",
+    "subCategory": "Kurtis",
+    "price": 1299,
+    "originalPrice": 2199,
+    "image": "/images/products/printed-kurti.jpg",
+    "gallery": ["/images/products/printed-kurti.jpg"],
+    "description": "A value pack of three soft cotton kurtis in fresh pastel prints. Breathable fabric, straight fit and side slits — your everyday ethnic essentials for work and home.",
+    "sizes": ["XS", "S", "M", "L", "XL", "XXL"],
+    "colors": ["Pastel Mix", "Mint Mix"],
+    "stock": 24,
+    "material": "See product description",
+    "care": "Follow the care label supplied with the garment.",
+    "packageContents": [
+      {
+        "name": "Printed cotton kurti",
+        "quantity": 3
+      }
+    ],
+    "featured": false,
+    "published": true,
+    "seoTitle": "",
+    "seoDescription": ""
+  },
+  {
+    "slug": "anarkali-suit",
+    "name": "Teal Anarkali Suit Set",
+    "brand": "Terra Ethnics",
+    "category": "women",
+    "subCategory": "Anarkali Suits",
+    "price": 3499,
+    "originalPrice": 5499,
+    "image": "/images/products/anarkali-suit.jpg",
+    "gallery": ["/images/products/anarkali-suit.jpg"],
+    "description": "Floor-length Anarkali in a rich teal hue with gold gota and thread embroidery on the yoke and hem. Comes with a matching dupatta and churidar for a complete festive look.",
+    "sizes": ["XS", "S", "M", "L", "XL", "XXL"],
+    "colors": ["Teal", "Maroon"],
+    "stock": 24,
+    "material": "See product description",
+    "care": "Follow the care label supplied with the garment.",
+    "packageContents": [
+      {
+        "name": "Anarkali kurta",
+        "quantity": 1
+      },
+      {
+        "name": "Dupatta",
+        "quantity": 1
+      },
+      {
+        "name": "Churidar",
+        "quantity": 1
+      }
+    ],
+    "featured": true,
+    "published": true,
+    "seoTitle": "",
+    "seoDescription": ""
+  },
+  {
+    "slug": "nehru-jacket-set",
+    "name": "Nehru Jacket Kurta Set",
+    "brand": "Terra Ethnics",
+    "category": "men",
+    "subCategory": "Nehru Jackets",
+    "price": 3799,
+    "originalPrice": 5999,
+    "image": "/images/products/nehru-jacket.jpg",
+    "gallery": ["/images/products/nehru-jacket.jpg"],
+    "description": "A sharp maroon Nehru jacket layered over a beige kurta-pajama set. Textured fabric, clean band collar and welt pockets — an effortless festive look for any celebration.",
+    "sizes": ["XS", "S", "M", "L", "XL", "XXL"],
+    "colors": ["Maroon-Beige", "Olive-Cream"],
+    "stock": 24,
+    "material": "See product description",
+    "care": "Follow the care label supplied with the garment.",
+    "packageContents": [
+      {
+        "name": "Nehru jacket",
+        "quantity": 1
+      },
+      {
+        "name": "Kurta",
+        "quantity": 1
+      },
+      {
+        "name": "Pajama",
+        "quantity": 1
+      }
+    ],
+    "featured": false,
+    "published": true,
+    "seoTitle": "",
+    "seoDescription": ""
+  },
+  {
+    "slug": "kids-festive-combo",
+    "name": "Kids Festive Combo",
+    "brand": "Terra Ethnics",
+    "category": "kids",
+    "subCategory": "Kurta Sets",
+    "price": 1999,
+    "originalPrice": 3499,
+    "image": "/images/products/kids-ethnic.jpg",
+    "gallery": ["/images/products/kids-ethnic.jpg"],
+    "description": "Adorable festive wear for little ones — a pink embroidered lehenga choli for her and a sunny yellow kurta pajama for him. Soft, skin-friendly fabric that keeps kids comfortable all day.",
+    "sizes": ["2-3Y", "4-5Y", "6-7Y", "8-9Y", "10-11Y"],
+    "colors": ["Pink Lehenga", "Yellow Kurta"],
+    "stock": 24,
+    "material": "See product description",
+    "care": "Follow the care label supplied with the garment.",
+    "packageContents": [
+      {
+        "name": "Lehenga choli set",
+        "quantity": 1
+      },
+      {
+        "name": "Kurta pajama set",
+        "quantity": 1
+      }
+    ],
+    "featured": false,
+    "published": true,
+    "seoTitle": "",
+    "seoDescription": ""
+  },
+  {
+    "slug": "jhumka-potli-set",
+    "name": "Jhumka & Potli Gift Set",
+    "brand": "Terra Ethnics",
+    "category": "accessories",
+    "subCategory": "Jewellery",
+    "price": 1499,
+    "originalPrice": 2499,
+    "image": "/images/products/jhumka-potli-set.jpg",
+    "gallery": ["/images/products/jhumka-potli-set.jpg"],
+    "description": "A curated gift set with pearl-drop gold jhumkas, a hand-embroidered velvet potli bag and a silk dupatta with a zari border. The perfect finishing touch for any ethnic outfit.",
+    "sizes": ["Free Size"],
+    "colors": ["Gold", "Rose Gold"],
+    "stock": 0,
+    "material": "See product description",
+    "care": "Follow the care label supplied with the garment.",
+    "packageContents": [
+      {
+        "name": "Pair of jhumkas",
+        "quantity": 1
+      },
+      {
+        "name": "Potli bag",
+        "quantity": 1
+      },
+      {
+        "name": "Dupatta",
+        "quantity": 1
+      }
+    ],
+    "featured": false,
+    "published": true,
+    "seoTitle": "",
+    "seoDescription": ""
+  }
+]

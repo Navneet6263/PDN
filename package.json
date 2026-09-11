@@ -1,0 +1,59 @@
+{
+  "name": "terra-fashion-store",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "setup": "tsx scripts/setup.ts",
+    "seed": "tsx scripts/seed.ts",
+    "db:dev": "prisma dev --name terra --db-port 5432 --port 51213 --shadow-db-port 5433",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:push": "prisma db push",
+    "dev": "concurrently -k -n api,web \"tsx watch server/index.ts\" \"next dev\"",
+    "build": "prisma generate && next build",
+    "start": "concurrently -k -n api,web \"tsx server/index.ts\" \"next start\"",
+    "start:api": "tsx server/index.ts",
+    "start:web": "next start",
+    "test": "tsx --test tests/*.test.ts",
+    "test:e2e": "playwright test",
+    "typecheck": "tsc --noEmit"
+  },
+  "overrides": {
+    "deepmerge-ts": "^8.0.0",
+    "mysql2": "^3.24.0"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.0.0",
+    "@prisma/client": "^7.0.0",
+    "cloudinary": "^2.7.0",
+    "dotenv": "^17.2.0",
+    "express": "^5.1.0",
+    "lucide-react": "^0.468.0",
+    "next": "latest",
+    "pg": "^8.16.0",
+    "react": "latest",
+    "react-dom": "latest",
+    "sharp": "^0.35.4",
+    "tsx": "^4.20.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "@types/express": "^5.0.0",
+    "@types/node": "^24.0.0",
+    "@types/pg": "^8.15.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "autoprefixer": "^10.4.21",
+    "concurrently": "^9.2.0",
+    "postcss": "^8.5.6",
+    "prettier": "^3.9.6",
+    "prisma": "^7.0.0",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.9.0"
+  }
+}

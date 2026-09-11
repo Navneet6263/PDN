@@ -1,0 +1,3 @@
+ALTER TABLE "Banner"
+ADD COLUMN "destination" TEXT NOT NULL DEFAULT 'link',
+ADD COLUMN "productIds" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[];
