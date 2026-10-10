@@ -31,13 +31,24 @@ try {
   );
   process.exit(1);
 }
+const online = onlineProviderFromEnv();
+// Says which gateway is live (never prints keys), so a deploy can be checked.
+console.log(
+  online?.id === "payu"
+    ? `Online payments: PayU ${process.env.PAYU_MODE === "live" ? "LIVE (real money)" : "TEST mode (test.payu.in)"}`
+    : online?.id === "razorpay"
+      ? `Online payments: Razorpay ${process.env.RAZORPAY_KEY_ID?.startsWith("rzp_live_") ? "LIVE (real money)" : "TEST keys"}`
+      : online
+        ? "Online payments: development test gateway (no real money)"
+        : "Online payments: off (cash on delivery only)",
+);
 const app = createApp(db, {
   email: process.env.ADMIN_EMAIL || "admin@terra.local",
   hash,
   origin: new URL(process.env.SITE_URL || "http://localhost:3000").origin,
   secure: process.env.COOKIE_SECURE === "true",
   imageStorage,
-  onlinePayment: onlineProviderFromEnv(),
+  onlinePayment: online,
 });
 // Release stock held by unpaid online orders.
 const sweeper = setInterval(
