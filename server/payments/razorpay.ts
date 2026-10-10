@@ -27,29 +27,45 @@ export function razorpay(options: {
     id: "razorpay",
     label: "UPI, cards, netbanking & wallets",
     async create(request) {
+      const paise = Math.round(request.amount * 100);
+      if (paise < 100)
+        throw new PaymentError("Online payments must be at least ₹1.");
       const response = await fetch(`${api}/orders`, {
         method: "POST",
         headers: { Authorization: auth, "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: Math.round(request.amount * 100),
+          amount: paise,
           currency: request.currency,
           receipt: request.paymentId,
           notes: { order: request.orderNumber },
         }),
         signal: AbortSignal.timeout(15000),
       });
-      const data = (await response.json().catch(() => ({}))) as { id?: string };
-      if (!response.ok || !data.id)
-        throw new PaymentError(
-          "The payment gateway is unavailable. Please try again.",
+      const data = (await response.json().catch(() => ({}))) as {
+        id?: string;
+        error?: { description?: string };
+      };
+      if (!response.ok || !data.id) {
+        // Log the real cause for the store owner; customers get a plain message.
+        console.error(
+          response.status === 401
+            ? "Razorpay rejected the API keys (401). Check RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET and that test keys are not mixed with live mode."
+            : `Razorpay order creation failed (${response.status}): ${data.error?.description || "no details"}`,
         );
+        throw Object.assign(
+          new PaymentError(
+            "Online payment is temporarily unavailable. Please try again or choose cash on delivery.",
+          ),
+          { status: 502 },
+        );
+      }
       return {
         providerOrderId: data.id,
         checkout: {
           provider: "razorpay",
           key: options.keyId,
           orderId: data.id,
-          amount: Math.round(request.amount * 100),
+          amount: paise,
           currency: request.currency,
           name: request.storeName,
           description: `Order ${request.orderNumber}`,

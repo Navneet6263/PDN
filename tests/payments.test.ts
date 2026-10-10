@@ -171,3 +171,46 @@ test("payu signs the hosted checkout form and verifies PayU's response hash", as
   );
   assert.equal(hook?.status, "paid");
 });
+
+test("razorpay refuses tiny amounts and hides key errors from customers", async () => {
+  const server = createServer((_req, res) => {
+    res.statusCode = 401;
+    res.setHeader("Content-Type", "application/json");
+    res.end(
+      JSON.stringify({ error: { description: "Authentication failed" } }),
+    );
+  });
+  await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
+  const port = (server.address() as { port: number }).port;
+  const gateway = razorpay({
+    keyId: "rzp_test_x",
+    keySecret: "wrong",
+    apiBase: `http://127.0.0.1:${port}`,
+  });
+  const request = {
+    orderNumber: "TS1",
+    paymentId: "pay1",
+    amount: 0.5,
+    currency: "INR",
+    storeName: "Terra",
+    customer: { name: "A", email: "a@b.c", phone: "9876543210" },
+  };
+  await assert.rejects(gateway.create(request), /at least ₹1/);
+  const logged: string[] = [];
+  const original = console.error;
+  console.error = (m: string) => logged.push(m);
+  try {
+    await assert.rejects(
+      gateway.create({ ...request, amount: 10 }),
+      (e: Error & { status?: number }) => {
+        assert.equal(e.status, 502);
+        assert.doesNotMatch(e.message, /key/i);
+        return true;
+      },
+    );
+  } finally {
+    console.error = original;
+    server.close();
+  }
+  assert.match(logged.join(" "), /rejected the API keys \(401\)/);
+});

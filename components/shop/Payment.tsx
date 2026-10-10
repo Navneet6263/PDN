@@ -58,14 +58,25 @@ export function usePayment() {
       await loadRazorpay();
       return new Promise((resolve, reject) => {
         const { provider: _p, orderId, ...rest } = checkout;
+        // Razorpay keeps its window open after a failed attempt so the
+        // customer can try another method; remember why it failed in case
+        // they close the window instead.
+        let failure = "";
         const rzp = new window.Razorpay!({
           ...rest,
           order_id: orderId,
           theme: { color: "#ff3f6c" },
           handler: (response) => verify(response).then(resolve, reject),
-          modal: { ondismiss: () => resolve(null) },
+          modal: {
+            ondismiss: () =>
+              failure
+                ? reject(new Error(`Payment failed: ${failure}`))
+                : resolve(null),
+          },
         });
-        rzp.on("payment.failed", () => undefined);
+        rzp.on("payment.failed", (r) => {
+          failure = r.error?.description || "the bank declined the payment";
+        });
         rzp.open();
       });
     }

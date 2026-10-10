@@ -100,7 +100,9 @@ function PendingPayment({
 
 export default function OrderDetail({ number }: { number: string }) {
   const { customer, ready } = useShopping();
-  const placed = useSearchParams().get("placed") === "1";
+  const search = useSearchParams();
+  const placed = search.get("placed") === "1";
+  const paymentProblem = search.get("error") || "";
   const { pay, dialog } = usePayment();
   const [order, setOrder] = useState<Order | null>(null);
   const [error, setError] = useState("");
@@ -183,6 +185,14 @@ export default function OrderDetail({ number }: { number: string }) {
             </p>
           </div>
         </div>
+      )}
+      {order.status === "pending_payment" && paymentProblem && (
+        <p
+          role="alert"
+          className="rounded-xl bg-red-50 p-4 text-sm text-red-800"
+        >
+          {paymentProblem}
+        </p>
       )}
       {order.status === "pending_payment" && (
         <PendingPayment

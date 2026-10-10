@@ -139,15 +139,19 @@ export default function PaymentStep() {
       });
       attempt.current = "";
       const { order } = result;
+      let problem = result.paymentError;
       if (order.status === "pending_payment" && result.checkout) {
         setPlacing("gateway");
         // Redirect gateways (PayU) leave the page here; popup gateways return.
-        await pay(order.number, result.checkout, order.total).catch(
-          () => undefined,
-        );
+        await pay(order.number, result.checkout, order.total).catch((e) => {
+          problem = (e as Error).message;
+        });
       }
       await refresh();
-      router.push(`/orders/${order.number}?placed=1`);
+      // The order exists either way; its page offers retry or pay on delivery.
+      router.push(
+        `/orders/${order.number}?placed=1${problem ? `&error=${encodeURIComponent(problem.slice(0, 200))}` : ""}`,
+      );
     } catch (e) {
       setError((e as Error).message);
       setPlacing("");
