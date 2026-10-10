@@ -7,7 +7,11 @@ test("fashion homepage, department navigation and header search work", async ({
   request,
 }) => {
   const products = await (await request.get("/api/products")).json();
-  expect(products.filter((p: { slug: string }) => p.slug.startsWith("sample-"))).toHaveLength(30);
+  // Studio catalog (scripts/load-catalog.ts) plus the ethnic preview listings.
+  expect(products.filter((p: { slug: string }) => p.slug.startsWith("c-")).length).toBe(191);
+  expect(
+    new Set(products.map((p: { image: string }) => p.image)).size,
+  ).toBe(products.length);
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/");
   const store = await (await request.get("/api/storefront")).json();
@@ -23,7 +27,9 @@ test("fashion homepage, department navigation and header search work", async ({
     .click();
   await page.locator("header").getByRole("link", { name: "Sarees", exact: true }).click();
   await expect(page).toHaveURL(/type=Sarees/);
-  await expect(page.locator("#catalog a h3")).toHaveCount(3);
+  await expect(page.locator("#catalog a h3")).toHaveCount(
+    products.filter((p: { subCategory: string }) => p.subCategory === "Sarees").length,
+  );
   await page.getByRole("combobox", { name: "Search the store" }).fill("Sunshine");
   await page.getByRole("combobox", { name: "Search the store" }).press("Enter");
   await expect(page.locator("#catalog a h3")).toHaveCount(1);
@@ -41,7 +47,9 @@ test("fashion homepage, department navigation and header search work", async ({
   const mobile = page.getByRole("navigation", { name: "Mobile categories", exact: true });
   await mobile.locator("summary").filter({ hasText: "Kids" }).click();
   await mobile.getByRole("link", { name: "Girls Ethnic Wear", exact: true }).click();
-  await expect(page.locator("#catalog a h3")).toHaveCount(3);
+  await expect(page.locator("#catalog a h3")).toHaveCount(
+    products.filter((p: { subCategory: string }) => p.subCategory === "Girls Ethnic Wear").length,
+  );
   await page.locator("#catalog a").first().click();
   await expect(page.getByRole("heading", { name: "What’s in the package" })).toBeVisible();
   await expect(
