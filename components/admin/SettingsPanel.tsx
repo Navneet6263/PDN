@@ -13,6 +13,32 @@ const labels: Partial<Record<keyof StoreSettings, [string, string?]>> = {
     "Use 0 to always charge the delivery fee.",
   ],
   codEnabled: ["Offer cash on delivery"],
+  legalName: [
+    "Registered business name",
+    "As on your PAN/GST. Shown on policy pages.",
+  ],
+  businessAddress: [
+    "Business address",
+    "Shown on Contact Us and in the footer.",
+  ],
+  grievanceOfficer: [
+    "Grievance officer name",
+    "Required for Indian e-commerce sites.",
+  ],
+  aboutPage: ["About Us page", "Leave blank to use the standard text."],
+  termsPage: [
+    "Terms & Conditions page",
+    "Leave blank to use the standard text. Lines starting with ## become headings.",
+  ],
+  privacyPage: ["Privacy Policy page", "Leave blank to use the standard text."],
+  refundPage: [
+    "Refund & Cancellation page",
+    "Leave blank to use the standard text (uses Return/Exchange policy below if set).",
+  ],
+  shippingPage: [
+    "Shipping & Delivery page",
+    "Leave blank to use the standard text (uses Shipping info below if set).",
+  ],
   codFee: [
     "Cash on delivery fee (₹)",
     "Added to COD orders only. Use 0 for none.",
@@ -54,6 +80,20 @@ const groups: { title: string; keys: (keyof StoreSettings)[] }[] = [
       "showStory",
       "storyTitle",
       "storyText",
+    ],
+  },
+  {
+    title:
+      "Business details & policy pages (needed for payment gateway approval)",
+    keys: [
+      "legalName",
+      "businessAddress",
+      "grievanceOfficer",
+      "aboutPage",
+      "termsPage",
+      "privacyPage",
+      "refundPage",
+      "shippingPage",
     ],
   },
   {
@@ -150,7 +190,9 @@ export default function SettingsPanel() {
                           ? "number"
                           : key === "heroImage"
                             ? "image"
-                            : /Policy|Info|Text|Description|Subtitle/.test(key)
+                            : /Policy|Info|Text|Description|Subtitle|Page$|Address/.test(
+                                  key,
+                                )
                               ? "textarea"
                               : "text",
                   }) as Field,

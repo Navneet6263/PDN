@@ -1,5 +1,6 @@
 import { getStorefront } from "@/lib/api";
 import Link from "next/link";
+import { policyPages } from "@/lib/policies";
 export default async function Footer() {
   const { settings: s, categories } = await getStorefront();
   return (
@@ -58,6 +59,22 @@ export default async function Footer() {
             </a>
           )}
           {s.contactPhone && <p className="mt-3 text-xs">{s.contactPhone}</p>}
+          {s.businessAddress && (
+            <p className="mt-3 text-xs leading-5 text-[#727583]">
+              {s.businessAddress}
+            </p>
+          )}
+          <div className="mt-5 grid gap-2.5 text-xs text-[#727583]">
+            {policyPages.map(([slug, label]) => (
+              <Link
+                key={slug}
+                href={`/policies/${slug}`}
+                className="hover:text-[#ff3f6c]"
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
       <div className="shell border-t pb-24 pt-6 text-[10px] text-[#9294a0] xl:pb-6">
