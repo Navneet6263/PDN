@@ -14,6 +14,8 @@ import Login from "./Login";
 import ProductForm from "./ProductForm";
 import ProductTable from "./ProductTable";
 import AdminStats from "./AdminStats";
+import Dashboard from "./Dashboard";
+import OrdersPanel from "./OrdersPanel";
 export default function AdminApp() {
   const [actor, setActor] = useState<Identity | null>(null);
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
@@ -25,6 +27,7 @@ export default function AdminApp() {
   const [editor, setEditor] = useState<Product | null | undefined>(undefined);
   const [deleting, setDeleting] = useState<Product | null>(null);
   const [busy, setBusy] = useState(false);
+  const [orderFilter, setOrderFilter] = useState("");
   useEffect(() => {
     request<Identity>("/auth/me")
       .then((identity) => {
@@ -32,7 +35,8 @@ export default function AdminApp() {
         setAuthenticated(true);
         setPage(
           allowedSections(identity.role).find(
-            (p) => p === new URLSearchParams(window.location.search).get("section"),
+            (p) =>
+              p === new URLSearchParams(window.location.search).get("section"),
           ) || allowedSections(identity.role)[0],
         );
       })
@@ -63,7 +67,9 @@ export default function AdminApp() {
           setActor(identity);
           setPage(
             allowedSections(identity.role).find(
-              (p) => p === new URLSearchParams(window.location.search).get("section"),
+              (p) =>
+                p ===
+                new URLSearchParams(window.location.search).get("section"),
             ) || allowedSections(identity.role)[0],
           );
           if (identity.role !== "support") void refresh();
@@ -96,20 +102,32 @@ export default function AdminApp() {
     }
   }
   if (authenticated === null)
-    return <p className="p-16 text-center text-sm text-muted">Opening your workspace…</p>;
+    return (
+      <p className="p-16 text-center text-sm text-muted">
+        Opening your workspace…
+      </p>
+    );
   if (!authenticated) return <Login onLogin={() => setAuthenticated(true)} />;
 
   if (!actor) return <p className="p-10">Loading workspace…</p>;
+  const go = (p: string) => {
+    window.history.replaceState(
+      null,
+      "",
+      `/admin?section=${encodeURIComponent(p)}`,
+    );
+    setPage(p);
+    setEditor(undefined);
+    setError("");
+    setNotice("");
+  };
   return (
     <AdminFrame
       actor={actor!}
       page={page}
       onPage={(p) => {
-        window.history.replaceState(null, "", `/admin?section=${encodeURIComponent(p)}`);
-        setPage(p);
-        setEditor(undefined);
-        setError("");
-        setNotice("");
+        setOrderFilter("");
+        go(p);
       }}
       onLogout={() => void logout()}
     >
@@ -135,7 +153,13 @@ export default function AdminApp() {
           </button>
         </div>
       )}
-      {resources[page] ? (
+      {page === "Orders" ? (
+        <OrdersPanel
+          key={orderFilter}
+          actor={actor}
+          initialStatus={orderFilter}
+        />
+      ) : resources[page] ? (
         <ResourcePanel key={page} config={resources[page]} />
       ) : page === "Store Settings" ? (
         <SettingsPanel />
@@ -149,7 +173,9 @@ export default function AdminApp() {
           onClose={() => setEditor(undefined)}
           onSaved={() => {
             setEditor(undefined);
-            setNotice("Product saved. Published changes are now visible on the storefront.");
+            setNotice(
+              "Product saved. Published changes are now visible on the storefront.",
+            );
             void refresh();
           }}
         />
@@ -157,16 +183,30 @@ export default function AdminApp() {
         <>
           <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
             <div>
-              <p className="eyebrow mb-3 text-olive">Your store, at a glance</p>
+              <p className="eyebrow mb-3 text-olive">
+                {page === "Overview"
+                  ? new Date().toLocaleDateString("en-IN", {
+                      weekday: "long",
+                      day: "numeric",
+                      month: "long",
+                    })
+                  : "Catalog"}
+              </p>
               <h1 className="serif text-3xl md:text-4xl">
-                {page === "Overview" ? "Hello, let’s make it a good day." : page}
+                {page === "Overview"
+                  ? `Hello${actor.id === "owner" ? "" : ` ${actor.name.split(" ")[0]}`}, let’s make it a good day.`
+                  : page}
               </h1>
               <p className="mt-3 text-xs text-muted">
-                Manage the pieces that make your collection.
+                {page === "Overview"
+                  ? "Sales, orders to fulfil and stock to watch, in one place."
+                  : "Manage the pieces that make your collection."}
               </p>
             </div>
             <button
               onClick={() => {
+                // New products are edited on the Products page so the saved row is visible.
+                if (page === "Overview") go("Products");
                 setEditor(null);
                 setNotice("");
               }}
@@ -175,8 +215,21 @@ export default function AdminApp() {
               <Plus size={16} /> Add product
             </button>
           </div>
-          {page === "Overview" && <AdminStats products={products} />}
-          {loading ? (
+          {page === "Overview" && (
+            <>
+              <Dashboard
+                onOrders={(status) => {
+                  setOrderFilter(status);
+                  go("Orders");
+                }}
+              />
+              <h2 className="mb-4 text-sm font-medium text-muted">
+                Catalog health
+              </h2>
+              <AdminStats products={products} />
+            </>
+          )}
+          {page === "Overview" ? null : loading ? (
             <p className="panel text-sm text-muted">Loading your products…</p>
           ) : (
             <ProductTable
@@ -204,7 +257,8 @@ export default function AdminApp() {
               Delete this product?
             </h2>
             <p className="my-5 text-sm leading-6 text-muted">
-              “{deleting.name}” will be removed from your catalog. This cannot be undone.
+              “{deleting.name}” will be removed from your catalog. This cannot
+              be undone.
             </p>
             <div className="flex justify-end gap-3">
               <button

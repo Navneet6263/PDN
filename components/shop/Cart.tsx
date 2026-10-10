@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { itemKey, request, type CartItem } from "@/lib/shopping";
 import { money } from "@/lib/types";
+import { orderTotals, type ChargeSettings } from "@/lib/orders";
 import { useShopping } from "./ShoppingProvider";
 export type Quote = {
   lines: (CartItem & {
@@ -10,14 +11,17 @@ export type Quote = {
     image: string;
     slug: string;
     price: number;
+    mrp: number;
     stock: number;
     error: string;
   })[];
   subtotal: number;
   valid: boolean;
+  charges?: ChargeSettings;
 };
 export default function Cart() {
-  const { items, customer, ready, busy, change, error, refresh } = useShopping();
+  const { items, customer, ready, busy, change, error, refresh } =
+    useShopping();
   const [quote, setQuote] = useState<Quote | null>(null),
     [note, setNote] = useState("");
   useEffect(() => {
@@ -65,7 +69,9 @@ export default function Cart() {
         <p>Loading your saved bag...</p>
       ) : !items.length ? (
         <div className="rounded-2xl bg-[#f5f6f8] px-6 py-16 text-center">
-          <h2 className="text-xl font-bold">A little room for your next favourite.</h2>
+          <h2 className="text-xl font-bold">
+            A little room for your next favourite.
+          </h2>
           <Link
             href="/#catalog"
             className="mt-5 inline-block rounded bg-[#ff3f6c] px-6 py-3 text-white"
@@ -101,7 +107,8 @@ export default function Cart() {
                   <p className="font-bold">{money(line.price)}</p>
                   {line.quantity > 1 && (
                     <p className="mt-1 text-xs text-gray-500">
-                      Each · {money(line.price * line.quantity)} for {line.quantity}
+                      Each · {money(line.price * line.quantity)} for{" "}
+                      {line.quantity}
                     </p>
                   )}
                   <label className="mt-3 block text-xs">
@@ -113,7 +120,9 @@ export default function Cart() {
                       onChange={(e) =>
                         void update(
                           items.map((i, n) =>
-                            n === index ? { ...i, quantity: Number(e.target.value) } : i,
+                            n === index
+                              ? { ...i, quantity: Number(e.target.value) }
+                              : i,
                           ),
                         )
                       }
@@ -133,7 +142,9 @@ export default function Cart() {
                   )}
                   <button
                     disabled={busy}
-                    onClick={() => void update(items.filter((_, n) => n !== index))}
+                    onClick={() =>
+                      void update(items.filter((_, n) => n !== index))
+                    }
                     className="mt-3 text-xs text-pink-600 underline"
                   >
                     Remove
@@ -148,9 +159,63 @@ export default function Cart() {
               <span>Items subtotal</span>
               <strong>{money(quote.subtotal)}</strong>
             </p>
+            {(() => {
+              const mrp = quote.lines.reduce(
+                (s, l) => s + (l.mrp || l.price) * l.quantity,
+                0,
+              );
+              const c = quote.charges;
+              const t = c && orderTotals(quote.subtotal, c, "online");
+              const short =
+                c && c.freeShippingAbove > 0
+                  ? c.freeShippingAbove - quote.subtotal
+                  : 0;
+              return (
+                <>
+                  {mrp > quote.subtotal && (
+                    <p className="flex justify-between text-sm text-[#03a685]">
+                      <span>You save on MRP</span>
+                      <strong>{money(mrp - quote.subtotal)}</strong>
+                    </p>
+                  )}
+                  {t && (
+                    <p className="flex justify-between text-sm">
+                      <span>Delivery</span>
+                      {t.shippingFee ? (
+                        <span>{money(t.shippingFee)}</span>
+                      ) : (
+                        <strong className="text-[#03a685]">FREE</strong>
+                      )}
+                    </p>
+                  )}
+                  {t && short > 0 && (
+                    <div className="rounded-lg bg-white p-3 text-xs">
+                      <p>
+                        Add <strong>{money(short)}</strong> more for{" "}
+                        <strong>free delivery</strong>
+                      </p>
+                      <div className="mt-2 h-1.5 rounded bg-gray-100">
+                        <div
+                          className="h-1.5 rounded bg-[#ff3f6c]"
+                          style={{
+                            width: `${Math.min(100, (quote.subtotal / c!.freeShippingAbove) * 100)}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                  {t && (
+                    <p className="flex justify-between border-t pt-4 font-bold">
+                      <span>Estimated total</span>
+                      <span>{money(t.total)}</span>
+                    </p>
+                  )}
+                </>
+              );
+            })()}
             <p className="text-xs leading-5 text-gray-500">
-              Delivery charges and payment will be available when ordering launches. Your bag does
-              not reserve stock.
+              Pay online or with cash on delivery at checkout. Items are
+              reserved once you place the order.
             </p>
             <Link
               aria-disabled={!quote.valid || busy}
@@ -162,7 +227,9 @@ export default function Cart() {
             >
               {customer ? "Continue to checkout" : "Sign in to checkout"}
             </Link>
-            <p className="text-xs text-gray-500">Your guest bag stays with you after login.</p>
+            <p className="text-xs text-gray-500">
+              Your guest bag stays with you after login.
+            </p>
           </aside>
         </div>
       )}

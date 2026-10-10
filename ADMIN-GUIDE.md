@@ -4,15 +4,17 @@ Open `http://localhost:3000/admin` (or your site's `/admin`). Use the owner logi
 
 | Section | What you control |
 | --- | --- |
+| Overview | Today's and 30-day sales (with change against the previous 30 days), average order value, COD/online mix, orders waiting to be packed/shipped/paid/refunded, a 14-day revenue chart, best sellers, top regions, low stock and the latest orders. |
+| Orders | Every website order, with tabs per status, search (order number, name, email, phone, tracking), CSV export and an order drawer: next-step buttons, courier/tracking details, payment attempts, refunds, a printable packing slip and internal notes. |
 | Products | Real product details, photos, prices, sizes, colors, package contents, publish/draft status, SEO and product-specific exchange/return/shipping/warranty information. |
 | Top 10 & Search | Assign or remove positions 1–10; set catalog order, featured status, search priority and comma-separated search keywords. |
 | Banners | Desktop/mobile images, text, destination link, hero/promotion placement, display order, enabled state and optional start/end dates. |
 | Categories | Navigation labels, category images, subcategories/product types, order and storefront visibility. |
 | Inventory | Search products, filter low/out-of-stock items, increment/decrement stock or enter an exact quantity. |
-| Sales & Regions | Record existing sales, update return/replacement status, and view revenue and region totals from those records. This is not checkout/payment processing. |
+| Sales & Regions | Record sales from other channels (shop counter, Instagram, WhatsApp), update return/replacement status, and view totals from those records. Website orders are in Orders and Overview. |
 | Support | Record enquiries, assign team members, set priority/status, and save internal conversation notes. Notes do not send email or WhatsApp messages. |
 | Team & Roles | Create accounts, change passwords, assign roles and disable/remove accounts. |
-| Store Settings | Brand/contact information, announcement, fallback hero, homepage headings and visibility, SEO metadata and default product policies. |
+| Store Settings | Brand/contact information, announcement, fallback hero, homepage headings and visibility, SEO metadata, default product policies, and **Payments & delivery**: delivery fee, free-delivery amount, cash on delivery on/off, COD fee and the largest COD order. |
 
 ## Placement rules
 
@@ -45,9 +47,20 @@ The catalog follows a saved style preference unless the visitor follows an expli
 
 For precise matching, use **Top 10 & Search → select product → Style Studio recommendations**. Occasion checkboxes override automatic matching; leaving all unchecked restores automatic matching. Style checkboxes boost matching preferences. These are stored with existing keywords as `mood:office`, `mood:college`, `mood:everyday`, `mood:festive` and `style:ethnic`, `style:minimal`, `style:bold`.
 
+## Orders
+
+Order lifecycle: **Awaiting payment → Confirmed → Packed → Shipped → Out for delivery → Delivered**. Shipped, out-for-delivery and delivered orders can be marked **Returned**; orders up to Packed can be **Cancelled**. Other jumps are refused.
+
+- Stock is reduced when the order is placed (inside one database transaction, so two customers cannot buy the last piece). Cancelling or returning puts it back, once.
+- Cash on delivery orders are confirmed immediately. Marking one **Delivered** records the cash as paid.
+- Online orders wait in **Awaiting payment** until the gateway confirms. Unpaid ones are cancelled after 30 minutes and their stock released. A customer can retry payment from their order page in that time.
+- A paid order that is cancelled or returned shows **Refund due**. Issue the refund in your gateway dashboard (or by UPI/bank for COD), then use **Record refund**.
+- Customers can cancel their own order until it is packed. They see status and shipping updates, never internal notes.
+- Order prices, names, photos and addresses are copied into the order, so later product edits or deletions do not change past orders.
+
 ## Permissions and storage
 
-Admin members have all controls. Inventory members can view products/categories and update stock. Support members can manage tickets and conversation notes. API endpoints enforce these permissions. Updating a team account revokes its sessions. The environment-configured owner cannot be removed through the team list.
+Admin members have all controls. Inventory members can view products/categories, update stock, and see and fulfil orders (pack, ship, deliver, return) but cannot cancel orders or change payments. Support members can manage tickets and conversation notes, and can look up orders and add notes to them. API endpoints enforce these permissions. Updating a team account revokes its sessions. The environment-configured owner cannot be removed through the team list.
 
 All records persist in PostgreSQL through Prisma. Local development currently uses the persistent Prisma development database; run `npm run db:dev` in one terminal and `npm run dev` in another. A separate Node API serves `/api`, and Next.js proxies browser requests to it.
 

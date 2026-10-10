@@ -15,7 +15,7 @@ export default function Account() {
       <div className="space-y-5">
         <h1 className="text-3xl font-bold">Hi, {customer.name}</h1>
         <p>{customer.email}</p>
-        <p>Your bag is saved to your account.</p>
+        <p>Your bag, addresses and orders are saved to your account.</p>
         {bagError && (
           <p role="alert">
             {bagError}
@@ -24,9 +24,17 @@ export default function Account() {
             </button>
           </p>
         )}
-        <Link href="/cart" className="btn-primary">
-          Open my bag
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          <Link href="/orders" className="btn-primary">
+            My orders
+          </Link>
+          <Link
+            href="/cart"
+            className="inline-flex min-h-11 items-center rounded-lg border px-6 text-sm font-semibold"
+          >
+            Open my bag
+          </Link>
+        </div>
         <Link href="/checkout" className="block text-pink-600 underline">
           Continue to checkout
         </Link>
@@ -48,7 +56,10 @@ export default function Account() {
         setError("");
         const form = new FormData(e.currentTarget);
         try {
-          await request(`/customer/${register ? "register" : "login"}`, Object.fromEntries(form));
+          await request(
+            `/customer/${register ? "register" : "login"}`,
+            Object.fromEntries(form),
+          );
           await refresh();
         } catch (e) {
           setError((e as Error).message);
@@ -60,7 +71,9 @@ export default function Account() {
       <p className="text-xs font-bold uppercase tracking-widest text-pink-600">
         Your personal shopping space
       </p>
-      <h1 className="text-3xl font-bold">{register ? "Create your account" : "Welcome back"}</h1>
+      <h1 className="text-3xl font-bold">
+        {register ? "Create your account" : "Welcome back"}
+      </h1>
       <p className="text-sm text-gray-500">
         The styles you added before signing in will stay in your bag.
       </p>
@@ -119,7 +132,11 @@ export default function Account() {
       >
         {busy ? "Please wait..." : register ? "Create account" : "Sign in"}
       </button>
-      <button type="button" onClick={() => setRegister(!register)} className="text-sm underline">
+      <button
+        type="button"
+        onClick={() => setRegister(!register)}
+        className="text-sm underline"
+      >
         {register ? "Already registered? Sign in" : "New here? Create account"}
       </button>
     </form>

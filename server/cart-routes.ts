@@ -40,6 +40,7 @@ export async function quoteCart(
       slug: p?.slug || "",
       image: p?.image || "",
       price: Number(p?.price || 0),
+      mrp: Math.max(Number(p?.originalPrice || 0), Number(p?.price || 0)),
       stock: p?.stock || 0,
       error,
     };
@@ -120,12 +121,10 @@ export function cartRoutes(
       cartSchema.parse(res.locals.customer.cart),
     );
     if (!quote.valid) {
-      res
-        .status(409)
-        .json({
-          error:
-            "Your bag changed. Check availability and sizes before continuing.",
-        });
+      res.status(409).json({
+        error:
+          "Your bag changed. Check availability and sizes before continuing.",
+      });
       return;
     }
     await db.customer.update({

@@ -19,24 +19,40 @@ test("spelling suggestions, guest bag, login, saved checkout and mobile layouts"
     await page.keyboard.press("Escape");
     await page.goto("/product/sample-everyday-printed-kurti");
     await page.getByRole("button", { name: "Add to bag", exact: true }).click();
-    await expect(page.getByText("Please select your size first.")).toBeVisible();
+    await expect(
+      page.getByText("Please select your size first."),
+    ).toBeVisible();
     await page.getByRole("button", { name: "M", exact: true }).click();
     await page.getByRole("button", { name: "Add to bag", exact: true }).click();
     await expect(page.getByText(/Added to your bag/)).toBeVisible();
     await page.goto("/cart");
     await expect(page.getByText("Size: M", { exact: false })).toBeVisible();
     await page.reload();
-    await expect(page.getByRole("heading", { name: "Powder Blue Office Kurta Set" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Powder Blue Office Kurta Set" }),
+    ).toBeVisible();
     await page.getByRole("link", { name: "Sign in to checkout" }).click();
-    await page.getByRole("button", { name: "New here? Create account" }).click();
-    await page.getByRole("textbox", { name: "Name", exact: true }).fill("Shopping Test");
+    await page
+      .getByRole("button", { name: "New here? Create account" })
+      .click();
+    await page
+      .getByRole("textbox", { name: "Name", exact: true })
+      .fill("Shopping Test");
     await page.getByRole("textbox", { name: "Email", exact: true }).fill(email);
-    await page.getByLabel("Password", { exact: true }).fill("E2e-shopping-123!");
-    await page.getByRole("button", { name: "Create account", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "Hi, Shopping Test" })).toBeVisible();
+    await page
+      .getByLabel("Password", { exact: true })
+      .fill("E2e-shopping-123!");
+    await page
+      .getByRole("button", { name: "Create account", exact: true })
+      .click();
+    await expect(
+      page.getByRole("heading", { name: "Hi, Shopping Test" }),
+    ).toBeVisible();
     await page.getByRole("link", { name: "Open my bag" }).click();
     await expect(page.getByText("Size: M", { exact: false })).toBeVisible();
-    await expect(page.getByRole("combobox", { name: /Quantity for/ })).toHaveValue("1");
+    await expect(
+      page.getByRole("combobox", { name: /Quantity for/ }),
+    ).toHaveValue("1");
     await page.getByRole("link", { name: "Continue to checkout" }).click();
     for (const [label, value] of [
       ["Full name", "Shopping Test"],
@@ -47,36 +63,63 @@ test("spelling suggestions, guest bag, login, saved checkout and mobile layouts"
       ["PIN code", "110001"],
     ])
       await page.getByLabel(label, { exact: true }).fill(value);
-    await page.getByRole("button", { name: "Save address & review" }).click();
-    await expect(page.getByRole("status")).toContainText("Address saved");
+    await page
+      .getByRole("button", { name: "Save address", exact: true })
+      .click();
+    await expect(page.getByText("12 Testing Street")).toBeVisible();
     await page.reload();
-    await expect(page.getByLabel("House, street & locality")).toHaveValue("12 Testing Street");
+    await expect(page.getByText("12 Testing Street")).toBeVisible();
+    await expect(
+      page.getByRole("radio", { name: /Cash on delivery/ }),
+    ).toBeVisible();
+    await page.getByRole("button", { name: "Change" }).click();
+    await expect(page.getByLabel("House, street & locality")).toHaveValue(
+      "12 Testing Street",
+    );
     await mkdir("artifacts", { recursive: true });
     for (const width of [360, 390, 414]) {
       await page.setViewportSize({ width, height: 844 });
-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
-        true,
-      );
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+      ).toBe(true);
     }
-    await page.screenshot({ path: "artifacts/checkout-mobile.png", fullPage: true });
+    await page.screenshot({
+      path: "artifacts/checkout-mobile.png",
+      fullPage: true,
+    });
     await page.goto("/account");
     await page.getByRole("button", { name: "Sign out", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Welcome back" }),
+    ).toBeVisible();
     await page.getByRole("textbox", { name: "Email", exact: true }).fill(email);
-    await page.getByLabel("Password", { exact: true }).fill("E2e-shopping-123!");
+    await page
+      .getByLabel("Password", { exact: true })
+      .fill("E2e-shopping-123!");
     await page.getByRole("button", { name: "Sign in", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "Hi, Shopping Test" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Hi, Shopping Test" }),
+    ).toBeVisible();
     await page.goto("/cart");
-    await expect(page.getByRole("combobox", { name: /Quantity for/ })).toHaveValue("1");
+    await expect(
+      page.getByRole("combobox", { name: /Quantity for/ }),
+    ).toHaveValue("1");
     await page.screenshot({ path: "artifacts/bag-mobile.png", fullPage: true });
     await page.goto("/");
     for (const width of [360, 390, 414]) {
       await page.setViewportSize({ width, height: 844 });
-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
-        true,
-      );
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+      ).toBe(true);
     }
-    await page.screenshot({ path: "artifacts/shopping-home-mobile.png", fullPage: true });
+    await page.screenshot({
+      path: "artifacts/shopping-home-mobile.png",
+      fullPage: true,
+    });
   } finally {
     const db = openDatabase();
     try {
@@ -98,7 +141,9 @@ test("hero rotates automatically and can be paused", async ({ page }) => {
   await expect(hero.locator("h1")).toHaveText(paused!);
 });
 
-test("a signed-in customer can publish a review with a photo", async ({ page }) => {
+test("a signed-in customer can publish a review with a photo", async ({
+  page,
+}) => {
   const email = `e2e-review-${Date.now()}@example.test`;
   try {
     const response = await page.request.post("/api/customer/register", {
@@ -116,10 +161,16 @@ test("a signed-in customer can publish a review with a photo", async ({ page }) 
       .locator('input[type="file"]')
       .setInputFiles("public/images/sample/office-monday.webp");
     await reviews.getByRole("button", { name: "Publish review" }).click();
-    await expect(reviews.getByRole("status")).toContainText("Your review is live");
-    await expect(reviews.getByAltText("Photo shared by Review Test")).toBeVisible();
+    await expect(reviews.getByRole("status")).toContainText(
+      "Your review is live",
+    );
+    await expect(
+      reviews.getByAltText("Photo shared by Review Test"),
+    ).toBeVisible();
     await page.reload();
-    await expect(reviews.getByAltText("Photo shared by Review Test")).toBeVisible();
+    await expect(
+      reviews.getByAltText("Photo shared by Review Test"),
+    ).toBeVisible();
   } finally {
     const db = openDatabase();
     try {

@@ -6,7 +6,7 @@ Customer storefront and admin panel rebuilt from the supplied Fashion Storefront
 - Backend: separate Node.js / Express API, written in TypeScript.
 - Database: PostgreSQL through Prisma ORM. No MongoDB or SQLite dependency.
 - Product photos: Cloudinary; uploads are resized and compressed to WebP before upload.
-- Scope: searchable storefront, product details, customer accounts, saved carts, photo reviews, delivery-address checkout, festival collections and admin controls for products, Top 10/search placement, scheduled banners, categories, stock, store settings, team permissions, support records and manually recorded sales reports. Payments and order placement are not enabled.
+- Scope: searchable storefront, product details, customer accounts, saved carts, photo reviews, delivery-address checkout, festival collections and admin controls for products, Top 10/search placement, scheduled banners, categories, stock, store settings, team permissions, support records, orders with cash on delivery or online payment, an order management panel and a sales dashboard.
 
 See [ADMIN-GUIDE.md](ADMIN-GUIDE.md) for placement rules, banner scheduling, default policies and team permissions.
 
@@ -55,6 +55,31 @@ For development only, `npm run db:dev` starts Prisma's local PostgreSQL-compatib
 Start the database again after stopping all servers or restarting your computer. `npm run dev` starts only the frontend and backend; the local database needs its own running terminal. If the catalog is unavailable, run `npx tsx scripts/check-db.ts` to check the database connection without displaying credentials.
 
 For offline UI development, `IMAGE_STORAGE=local` saves optimized uploads under `uploads/`. Hosted deployment must use Cloudinary. The application refuses to start in Cloudinary mode when credentials are missing.
+
+## Orders & payments
+
+Customers can order with **cash on delivery** out of the box. Delivery fee, free-delivery amount and COD rules are in **Admin → Store Settings → Payments & delivery**. Order handling is described in [ADMIN-GUIDE.md](ADMIN-GUIDE.md#orders).
+
+Online payment is enabled by adding gateway keys to `.env` and restarting:
+
+```dotenv
+RAZORPAY_KEY_ID=rzp_live_...
+RAZORPAY_KEY_SECRET=...
+RAZORPAY_WEBHOOK_SECRET=...
+```
+
+In the Razorpay dashboard, add a webhook to `https://YOUR-DOMAIN/api/payments/webhook/razorpay` for `payment.captured` and `payment.failed`, using the same webhook secret. Customers then see **Pay online** (UPI, cards, netbanking, wallets) at checkout. Use `rzp_test_` keys first. The Razorpay integration is covered by automated tests against a simulated API but has not yet been run against a live Razorpay account, so make a test-mode payment before going live.
+
+For local development without keys, set `PAYMENT_TEST_MODE=true`: checkout then shows a fake gateway that can simulate success or failure. It refuses to start when `NODE_ENV=production`.
+
+How it fits together:
+
+- `server/payments/types.ts` defines the `PaymentProvider` contract: `create` (register an attempt with the gateway), `verify` (check the browser's success callback) and optional `webhook` (server-to-server confirmation).
+- `server/payments/razorpay.ts` and `test-gateway.ts` implement it; `server/payments/index.ts` picks one from the environment.
+- `server/orders.ts` holds the order rules: stock reservation, totals, idempotent payment results, status transitions and expiry of unpaid orders. It never calls a gateway directly.
+- `components/shop/Payment.tsx` opens the gateway's window in the browser.
+
+To add another gateway (Stripe, PhonePe, Cashfree, PayU), implement `PaymentProvider` in a new file under `server/payments/`, select it in `index.ts`, and add a branch for its browser checkout in `Payment.tsx`. Orders, refund flags, the admin panel and the dashboard work unchanged. Each payment attempt is a `Payment` row, so retries and partial failures are kept for audit.
 
 ## Product management
 

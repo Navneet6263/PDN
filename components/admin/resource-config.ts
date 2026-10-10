@@ -99,7 +99,7 @@ export const resources: Record<string, ResourceConfig> = {
     path: "sales",
     title: "Sales & Regions",
     description:
-      "Record actual sales from your selling channels. These records power the report below. This screen does not collect payments or place orders.",
+      "Record sales from other channels, such as an in-store counter, Instagram or WhatsApp. Website orders appear under Orders and on the Overview dashboard automatically.",
     columns: ["orderRef", "region", "amount", "status", "soldAt"],
     remove: true,
     blank: {

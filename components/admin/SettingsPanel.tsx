@@ -3,14 +3,46 @@ import { useEffect, useState } from "react";
 import { defaultSettings, type StoreSettings } from "@/lib/store-types";
 import ControlFields, { type Field } from "./ControlFields";
 import { request } from "./api";
+const labels: Partial<Record<keyof StoreSettings, [string, string?]>> = {
+  shippingFee: [
+    "Delivery fee (₹)",
+    "Charged when the bag is below the free-delivery amount.",
+  ],
+  freeShippingAbove: [
+    "Free delivery from (₹)",
+    "Use 0 to always charge the delivery fee.",
+  ],
+  codEnabled: ["Offer cash on delivery"],
+  codFee: [
+    "Cash on delivery fee (₹)",
+    "Added to COD orders only. Use 0 for none.",
+  ],
+  codMaxOrder: [
+    "Largest COD order (₹)",
+    "Bigger orders must pay online. Use 0 for no limit.",
+  ],
+};
 const groups: { title: string; keys: (keyof StoreSettings)[] }[] = [
   {
     title: "Brand & contact",
-    keys: ["storeName", "announcement", "footerText", "contactEmail", "contactPhone"],
+    keys: [
+      "storeName",
+      "announcement",
+      "footerText",
+      "contactEmail",
+      "contactPhone",
+    ],
   },
   {
     title: "Default hero (when no scheduled hero banner is active)",
-    keys: ["heroTitle", "heroSubtitle", "heroEyebrow", "heroImage", "heroButtonLabel", "heroLink"],
+    keys: [
+      "heroTitle",
+      "heroSubtitle",
+      "heroEyebrow",
+      "heroImage",
+      "heroButtonLabel",
+      "heroLink",
+    ],
   },
   {
     title: "Homepage sections",
@@ -22,6 +54,16 @@ const groups: { title: string; keys: (keyof StoreSettings)[] }[] = [
       "showStory",
       "storyTitle",
       "storyText",
+    ],
+  },
+  {
+    title: "Payments & delivery",
+    keys: [
+      "shippingFee",
+      "freeShippingAbove",
+      "codEnabled",
+      "codFee",
+      "codMaxOrder",
     ],
   },
   { title: "Search engine metadata", keys: ["seoTitle", "seoDescription"] },
@@ -50,8 +92,13 @@ export default function SettingsPanel() {
         setError("");
         setNotice("");
         try {
-          await request("/admin/settings", { method: "PUT", body: JSON.stringify(value) });
-          setNotice("Store settings saved. Refresh the storefront to see your changes.");
+          await request("/admin/settings", {
+            method: "PUT",
+            body: JSON.stringify(value),
+          });
+          setNotice(
+            "Store settings saved. Refresh the storefront to see your changes.",
+          );
         } catch (err) {
           setError((err as Error).message);
         } finally {
@@ -61,8 +108,8 @@ export default function SettingsPanel() {
     >
       <h1 className="serif text-4xl">Store Settings</h1>
       <p className="text-sm text-muted">
-        Product-specific policies override these defaults. Search engine metadata does not guarantee
-        a Google ranking.
+        Product-specific policies override these defaults. Search engine
+        metadata does not guarantee a Google ranking.
       </p>
       {error && (
         <p role="alert" className="text-red-700">
@@ -76,7 +123,11 @@ export default function SettingsPanel() {
       )}
       {value &&
         groups.map((g) => (
-          <fieldset disabled={busy || uploading} className="panel" key={g.title}>
+          <fieldset
+            disabled={busy || uploading}
+            className="panel"
+            key={g.title}
+          >
             <h2 className="mb-5 font-medium">{g.title}</h2>
             <ControlFields
               onBusy={setUploading}
@@ -86,15 +137,22 @@ export default function SettingsPanel() {
                 (key) =>
                   ({
                     key,
-                    label: key.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase()),
+                    label:
+                      labels[key]?.[0] ||
+                      key
+                        .replace(/([A-Z])/g, " $1")
+                        .replace(/^./, (s) => s.toUpperCase()),
+                    hint: labels[key]?.[1],
                     type:
                       typeof defaultSettings[key] === "boolean"
                         ? "checkbox"
-                        : key === "heroImage"
-                          ? "image"
-                          : /Policy|Info|Text|Description|Subtitle/.test(key)
-                            ? "textarea"
-                            : "text",
+                        : typeof defaultSettings[key] === "number"
+                          ? "number"
+                          : key === "heroImage"
+                            ? "image"
+                            : /Policy|Info|Text|Description|Subtitle/.test(key)
+                              ? "textarea"
+                              : "text",
                   }) as Field,
               )}
             />

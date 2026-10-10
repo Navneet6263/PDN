@@ -1,6 +1,10 @@
 import Link from "next/link";
-import { ShoppingBag, MapPin, Check } from "lucide-react";
-export default function ShoppingSteps({ current }: { current: "bag" | "address" }) {
+import { ShoppingBag, MapPin, CreditCard } from "lucide-react";
+export default function ShoppingSteps({
+  current,
+}: {
+  current: "bag" | "address";
+}) {
   return (
     <nav
       aria-label="Shopping progress"
@@ -20,12 +24,12 @@ export default function ShoppingSteps({ current }: { current: "bag" | "address" 
         className={`flex items-center gap-2 ${current === "address" ? "font-bold text-[#333b4b]" : "text-[#737a89]"}`}
       >
         <MapPin size={16} />
-        Address
+        Address & payment
       </span>
       <span className="h-px w-5 bg-[#d6dae2] sm:w-12" />
       <span className="flex items-center gap-2 text-[#737a89]">
-        <Check size={16} />
-        Review
+        <CreditCard size={16} />
+        Confirmation
       </span>
     </nav>
   );

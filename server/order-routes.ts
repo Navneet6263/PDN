@@ -207,8 +207,9 @@ export function adminOrderRoutes(db: Database) {
         : {}),
     };
     const [rows, counts, refundDue] = await Promise.all([
+      // "__counts" lets the sidebar badge fetch tab counts without rows.
       db.order.findMany({
-        where,
+        where: status === "__counts" ? { id: "" } : where,
         include: { items: true },
         orderBy: { placedAt: "desc" },
         take: 200,
@@ -292,6 +293,10 @@ export function adminOrderRoutes(db: Database) {
         where: { id },
         data: {
           paymentStatus: status,
+          // Payment confirmed by staff (e.g. a bank transfer) releases the order.
+          ...(status === "paid" && order.status === "pending_payment"
+            ? { status: "confirmed" as const }
+            : {}),
           events: {
             create: {
               kind: "payment",
@@ -322,16 +327,14 @@ export function adminOrderRoutes(db: Database) {
         actor: res.locals.actor.name,
       },
     });
-    res
-      .status(201)
-      .json(
-        serializeOrder(
-          await db.order.findUniqueOrThrow({
-            where: { id },
-            include: orderInclude,
-          }),
-        ),
-      );
+    res.status(201).json(
+      serializeOrder(
+        await db.order.findUniqueOrThrow({
+          where: { id },
+          include: orderInclude,
+        }),
+      ),
+    );
   });
   router.get("/dashboard", async (_req, res) => res.json(await dashboard(db)));
   return router;
