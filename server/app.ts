@@ -13,6 +13,7 @@ import { uploadImage } from "./uploads";
 import type { ServerConfig } from "./config";
 import { publicStoreRoutes, storeAdminRoutes } from "./store-routes";
 import { teamRoutes } from "./team-routes";
+import { couponAdminRoutes } from "./coupons";
 import { supportRoutes } from "./support-routes";
 import { salesRoutes } from "./sales-routes";
 import { customerAuth } from "./customer-auth";
@@ -124,6 +125,7 @@ export function createApp(db: Database, config: ServerConfig) {
     supportRoutes(db),
     salesRoutes(db),
     adminOrderRoutes(db),
+    couponAdminRoutes(db),
   );
   app.get("/api/admin/products", async (_req, res) =>
     res.json(await readProducts(db, true)),

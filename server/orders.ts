@@ -5,6 +5,7 @@ import { cartSchema } from "../lib/shopping";
 import {
   codAllowed,
   orderTotals,
+  withCoupon,
   transitions,
   type ChargeSettings,
   type Order,
@@ -14,6 +15,7 @@ import {
 import type { Database } from "./db";
 import { quoteCart } from "./cart-routes";
 import { fail } from "./route-utils";
+import { resolveCoupon } from "./coupons";
 import type { PaymentProvider } from "./payments";
 import type { PaymentResult } from "./payments/types";
 
@@ -132,6 +134,7 @@ export async function placeOrder(
     address: Order["address"];
     paymentMethod: PaymentMethod;
     idempotencyKey: string;
+    couponCode?: string;
   },
   online: PaymentProvider | null,
 ) {
@@ -162,11 +165,23 @@ export async function placeOrder(
         409,
       );
     const settings = await storeSettings(tx);
-    const totals = orderTotals(
-      quote.subtotal,
-      charges(settings),
-      input.paymentMethod,
+    const coupon = input.couponCode
+      ? await resolveCoupon(
+          tx,
+          input.couponCode,
+          customer,
+          quote.subtotal,
+          true,
+        )
+      : null;
+    const totals = withCoupon(
+      orderTotals(quote.subtotal, charges(settings), input.paymentMethod),
+      coupon,
     );
+    if (input.paymentMethod === "online" && totals.total < 1)
+      throw fail(
+        "This order total is too low to pay online. Choose cash on delivery.",
+      );
     if (
       input.paymentMethod === "cod" &&
       !codAllowed(charges(settings), totals.total)
@@ -206,6 +221,7 @@ export async function placeOrder(
         status: cod ? "confirmed" : "pending_payment",
         paymentMethod: input.paymentMethod,
         ...totals,
+        couponCode: coupon?.code || "",
         items: {
           create: quote.lines.map((l) => ({
             productId: l.productId,
@@ -317,7 +333,8 @@ export async function applyPaymentResult(
     if (
       result.status === "paid" &&
       result.amount !== undefined &&
-      Math.round(result.amount * 100) !== Math.round(Number(payment.amount) * 100)
+      Math.round(result.amount * 100) !==
+        Math.round(Number(payment.amount) * 100)
     )
       result = {
         ...result,

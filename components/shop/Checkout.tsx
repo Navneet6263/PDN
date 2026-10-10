@@ -2,13 +2,22 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Banknote, CreditCard, MapPin, ShieldCheck, Truck } from "lucide-react";
+import {
+  Banknote,
+  CreditCard,
+  MapPin,
+  ShieldCheck,
+  TicketPercent,
+  Truck,
+} from "lucide-react";
 import { request } from "@/lib/shopping";
 import { money } from "@/lib/types";
 import {
   codAllowed,
   orderTotals,
+  withCoupon,
   type ChargeSettings,
+  type CouponRule,
   type Order,
   type PaymentCheckout,
   type PaymentMethod,
@@ -52,6 +61,10 @@ export default function Checkout() {
   const [busy, setBusy] = useState(false);
   const [placing, setPlacing] = useState(false);
   const [method, setMethod] = useState<PaymentMethod | null>(null);
+  const [coupon, setCoupon] = useState<CouponRule | null>(null);
+  const [code, setCode] = useState("");
+  const [couponError, setCouponError] = useState("");
+  const [applying, setApplying] = useState(false);
   // One key per checkout attempt: a retried or double-clicked submit returns
   // the same order instead of creating a second one.
   const attempt = useRef<string>("");
@@ -79,17 +92,19 @@ export default function Checkout() {
       0,
     );
     const units = data.lines.reduce((s, l) => s + l.quantity, 0);
-    const preview = orderTotals(
-      data.subtotal,
-      data.options.charges,
-      method || "online",
+    const preview = withCoupon(
+      orderTotals(data.subtotal, data.options.charges, method || "online"),
+      coupon,
     );
     const codOk = codAllowed(
       data.options.charges,
-      orderTotals(data.subtotal, data.options.charges, "cod").total,
+      withCoupon(
+        orderTotals(data.subtotal, data.options.charges, "cod"),
+        coupon,
+      ).total,
     );
     return { mrp, units, preview, codOk };
-  }, [data, method]);
+  }, [data, method, coupon]);
   useEffect(() => {
     if (!data || !totals) return;
     if (method === "cod" && !totals.codOk) setMethod(null);
@@ -119,6 +134,19 @@ export default function Checkout() {
       </div>
     );
 
+  async function applyCoupon() {
+    setApplying(true);
+    setCouponError("");
+    try {
+      setCoupon(await request<CouponRule>("/customer/coupon", { code }));
+      attempt.current = "";
+    } catch (e) {
+      setCoupon(null);
+      setCouponError((e as Error).message);
+    } finally {
+      setApplying(false);
+    }
+  }
   async function placeOrder() {
     if (!data?.address || !method) return;
     setPlacing(true);
@@ -133,6 +161,7 @@ export default function Checkout() {
         address: data.address,
         paymentMethod: method,
         idempotencyKey: attempt.current,
+        couponCode: coupon?.code || "",
       });
       attempt.current = "";
       const { order } = result;
@@ -370,7 +399,66 @@ export default function Checkout() {
                 </div>
               ))}
             </div>
+            <div className="rounded-xl border border-dashed border-[#d4d5d9] p-4">
+              {coupon ? (
+                <div className="flex items-center justify-between gap-3 text-sm">
+                  <span>
+                    <span className="flex items-center gap-2 font-bold">
+                      <TicketPercent size={16} className="text-[#03a685]" />
+                      {coupon.code} applied
+                    </span>
+                    {coupon.description && (
+                      <span className="mt-1 block text-xs text-gray-500">
+                        {coupon.description}
+                      </span>
+                    )}
+                  </span>
+                  <button
+                    type="button"
+                    disabled={placing}
+                    onClick={() => {
+                      setCoupon(null);
+                      setCode("");
+                      attempt.current = "";
+                    }}
+                    className="text-xs font-bold text-[#ff3f6c]"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <form
+                  className="flex gap-2"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (code.trim()) void applyCoupon();
+                  }}
+                >
+                  <input
+                    aria-label="Coupon code"
+                    placeholder="Coupon code"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.toUpperCase())}
+                    maxLength={40}
+                    className="min-w-0 flex-1 rounded border p-2.5 text-sm uppercase"
+                  />
+                  <button
+                    disabled={applying || !code.trim()}
+                    className="rounded border border-[#ff3f6c] px-4 text-sm font-bold text-[#ff3f6c]"
+                  >
+                    {applying ? "..." : "Apply"}
+                  </button>
+                </form>
+              )}
+              {couponError && (
+                <p role="alert" className="mt-2 text-xs text-red-700">
+                  {couponError}
+                </p>
+              )}
+            </div>
             <PriceBreakup
+              discount={totals.preview.discount}
+              couponCode={coupon?.code}
               mrp={totals.mrp}
               items={totals.units}
               subtotal={totals.preview.subtotal}

@@ -71,6 +71,8 @@ SITE_URL=https://your-domain
 
 Customers are sent to PayU's payment page and come back to `/api/payments/return/payu`, which checks PayU's SHA-512 hash and the amount before marking the order paid. In the PayU dashboard, add `https://YOUR-DOMAIN/api/payments/webhook/payu` as the webhook for successful and failed payments so payments are recorded even if the customer closes the browser before returning. Refunds are issued from the PayU dashboard, then recorded with **Record refund** in admin. The PayU integration is tested against PayU's documented hash formula and a simulated PayU response, not yet against a live PayU account.
 
+To test a live gateway cheaply, create a ₹1 coupon: `npx tsx scripts/create-test-coupon.ts` makes **NAVNEET**, which turns any order into a ₹1 order (5 uses, expires in 7 days; add `--email you@example.com` to limit it to one account). Anyone who knows the code can use it, so switch it off after testing with `npx tsx scripts/create-test-coupon.ts --off` or from **Admin → Coupons**.
+
 **Razorpay** instead:
 
 ```dotenv

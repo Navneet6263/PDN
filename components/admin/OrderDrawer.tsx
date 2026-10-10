@@ -46,7 +46,7 @@ function printSlip(o: Order) {
   <table><thead><tr><th>Item</th><th>Size</th><th>Colour</th><th class="r">Qty</th><th class="r">Price</th><th class="r">Amount</th></tr></thead><tbody>
   ${o.items.map((i) => `<tr><td>${esc(i.name)}</td><td>${esc(i.size)}</td><td>${esc(i.color)}</td><td class="r">${i.quantity}</td><td class="r">${esc(money(i.unitPrice))}</td><td class="r">${esc(money(i.unitPrice * i.quantity))}</td></tr>`).join("")}
   </tbody></table>
-  <p class="r">Subtotal ${esc(money(o.subtotal))}<br>Delivery ${esc(money(o.shippingFee))}${o.codFee ? `<br>COD fee ${esc(money(o.codFee))}` : ""}<br><strong>Total ${esc(money(o.total))}</strong></p>
+  <p class="r">Subtotal ${esc(money(o.subtotal))}<br>Delivery ${esc(money(o.shippingFee))}${o.codFee ? `<br>COD fee ${esc(money(o.codFee))}` : ""}${o.discount ? `<br>Coupon ${esc(o.couponCode)} −${esc(money(o.discount))}` : ""}<br><strong>Total ${esc(money(o.total))}</strong></p>
   <script>window.print()</script></body></html>`);
   w.document.close();
 }
@@ -319,6 +319,9 @@ export default function OrderDrawer({
                   ["Subtotal", order.subtotal],
                   ["Delivery", order.shippingFee],
                   ...(order.codFee ? [["COD fee", order.codFee] as const] : []),
+                  ...(order.discount
+                    ? [[`Coupon ${order.couponCode}`, -order.discount] as const]
+                    : []),
                 ].map(([k, v]) => (
                   <p key={k} className="flex justify-between text-muted">
                     <span>{k}</span>

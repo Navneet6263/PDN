@@ -265,6 +265,8 @@ export default function OrderDetail({ number }: { number: string }) {
             <p>Mobile: {order.address.phone}</p>
           </div>
           <PriceBreakup
+            discount={order.discount}
+            couponCode={order.couponCode}
             mrp={mrp}
             items={order.items.reduce((s, i) => s + i.quantity, 0)}
             subtotal={order.subtotal}

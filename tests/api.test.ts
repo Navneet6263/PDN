@@ -14,7 +14,7 @@ import seed from "./fixtures/demo-products.json";
 import { checkControls, checkRoles } from "./admin-controls";
 import { checkShopping } from "./customer-flow";
 import { checkCollections } from "./banner-collections";
-import { checkOrders } from "./order-flow";
+import { checkCoupons, checkOrders } from "./order-flow";
 import { testGateway } from "../server/payments/test-gateway";
 let connection: Client,
   db: Database,
@@ -29,7 +29,8 @@ let cookie = "";
 before(async () => {
   directory = await mkdtemp(join(tmpdir(), "terra-test-"));
   const url = new URL(
-    process.env.TEST_DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/terra_store",
+    process.env.TEST_DATABASE_URL ||
+      "postgresql://postgres:postgres@localhost:5432/terra_store",
   );
   connection = new Client({ connectionString: url.href });
   await connection.connect();
@@ -40,7 +41,10 @@ before(async () => {
     .filter((e) => e.isDirectory())
     .sort((a, b) => a.name.localeCompare(b.name))) {
     await connection.query(
-      await readFile(new URL(`${entry.name}/migration.sql`, migrations), "utf8"),
+      await readFile(
+        new URL(`${entry.name}/migration.sql`, migrations),
+        "utf8",
+      ),
     );
   }
   await connection.query("SET search_path TO public");
@@ -62,7 +66,8 @@ before(async () => {
   base = `http://127.0.0.1:${address.port}`;
 });
 after(async () => {
-  if (server) await new Promise<void>((resolve) => server.close(() => resolve()));
+  if (server)
+    await new Promise<void>((resolve) => server.close(() => resolve()));
   await db?.$disconnect();
   if (connection) {
     assert.match(schema, /^terra_test_[a-f0-9]{32}$/);
@@ -83,10 +88,14 @@ const api = (path: string, method = "GET", body?: unknown, session = cookie) =>
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
 test("all seed products satisfy product validation", () => {
-  for (const product of seed) assert.equal(productSchema.safeParse(product).success, true);
+  for (const product of seed)
+    assert.equal(productSchema.safeParse(product).success, true);
 });
 test("admin authentication, origin enforcement and session cookies", async () => {
-  assert.equal((await api("/admin/products", "GET", undefined, "")).status, 401);
+  assert.equal(
+    (await api("/admin/products", "GET", undefined, "")).status,
+    401,
+  );
   assert.equal(
     (
       await fetch(`${base}/api/auth/login`, {
@@ -172,7 +181,10 @@ test("draft lifecycle, package data, unique slugs and durable PostgreSQL storage
     400,
   );
   const reopened = openDatabase(databaseUrl);
-  assert.equal((await reopened.product.findUnique({ where: { slug: p.slug } }))?.stock, 3);
+  assert.equal(
+    (await reopened.product.findUnique({ where: { slug: p.slug } }))?.stock,
+    3,
+  );
   await reopened.$disconnect();
   assert.equal(
     (
@@ -194,7 +206,10 @@ test("draft lifecycle, package data, unique slugs and durable PostgreSQL storage
     ).status,
     400,
   );
-  assert.equal((await api("/admin/products/not-valid", "PUT", draft)).status, 404);
+  assert.equal(
+    (await api("/admin/products/not-valid", "PUT", draft)).status,
+    404,
+  );
   assert.equal((await api(`/admin/products/${p.id}`, "DELETE")).status, 200);
   assert.equal((await api(`/products/${p.slug}`)).status, 404);
   assert.equal(await db.packageItem.count({ where: { productId: p.id } }), 0);
@@ -212,7 +227,10 @@ test("image uploads require login, validate content and produce optimized WebP",
       body: new Uint8Array(buffer),
     });
   assert.equal((await upload(png, "")).status, 401);
-  assert.equal((await upload(Buffer.from("<script>invalid</script>"))).status, 400);
+  assert.equal(
+    (await upload(Buffer.from("<script>invalid</script>"))).status,
+    400,
+  );
   const result = await upload(png);
   assert.equal(result.status, 201);
   const { url } = await result.json();
@@ -231,6 +249,9 @@ test("customer cart merges once, checkout validates and photo reviews persist", 
 
 test("orders reserve stock, take COD or online payment and follow fulfilment rules", async () =>
   checkOrders(api, base));
+
+test("coupons apply percent, flat and fixed-total discounts within their limits", async () =>
+  checkCoupons(api));
 
 test("festival banner selections validate, persist and respect scheduling", async () =>
   checkCollections(api));

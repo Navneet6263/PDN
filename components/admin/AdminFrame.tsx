@@ -15,6 +15,7 @@ import {
   Settings,
   Shirt,
   Sparkles,
+  TicketPercent,
   Users,
   X,
   type LucideIcon,
@@ -40,7 +41,13 @@ const groups: { title: string; items: [string, LucideIcon][] }[] = [
       ["Top 10 & Search", Sparkles],
     ],
   },
-  { title: "Marketing", items: [["Banners", ImageIcon]] },
+  {
+    title: "Marketing",
+    items: [
+      ["Banners", ImageIcon],
+      ["Coupons", TicketPercent],
+    ],
+  },
   {
     title: "Team",
     items: [

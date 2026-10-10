@@ -356,3 +356,155 @@ export async function checkOrders(api: Api, base: string) {
     201,
   );
 }
+
+export async function checkCoupons(api: Api) {
+  const product = await (
+    await api("/admin/products", "POST", {
+      ...seed[0],
+      slug: "coupon-test-product",
+      category: "orders-test",
+      published: true,
+      price: 1500,
+      originalPrice: 2000,
+      stock: 20,
+    })
+  ).json();
+  const account = await api(
+    "/customer/register",
+    "POST",
+    {
+      name: "Coupon Tester",
+      email: "coupons@test.local",
+      password: "coupon-test-password",
+    },
+    "",
+  );
+  const shopper = account.headers.get("set-cookie")!.split(";")[0];
+  const fill = () =>
+    api(
+      "/customer/cart",
+      "PUT",
+      [
+        {
+          productId: product.id,
+          size: product.sizes[0] || "One size",
+          color: product.colors[0] || "",
+          quantity: 1,
+        },
+      ],
+      shopper,
+    );
+  const place = async (couponCode: string, paymentMethod = "online") => {
+    await fill();
+    return api(
+      "/customer/orders",
+      "POST",
+      { address, paymentMethod, idempotencyKey: randomUUID(), couponCode },
+      shopper,
+    );
+  };
+  const base = {
+    description: "",
+    minOrder: 0,
+    maxDiscount: 0,
+    perCustomer: 0,
+    allowedEmails: [],
+    active: true,
+    startsAt: null,
+    endsAt: null,
+  };
+  assert.equal(
+    (
+      await api("/admin/coupons", "POST", {
+        ...base,
+        code: "bad",
+        type: "percent",
+        value: 150,
+        maxUses: 0,
+      })
+    ).status,
+    400,
+  );
+  const test = await (
+    await api("/admin/coupons", "POST", {
+      ...base,
+      code: "navneet",
+      type: "fixed_total",
+      value: 1,
+      maxUses: 2,
+    })
+  ).json();
+  assert.equal(test.code, "NAVNEET");
+  await api("/admin/coupons", "POST", {
+    ...base,
+    code: "SAVE10",
+    type: "percent",
+    value: 10,
+    maxDiscount: 100,
+    minOrder: 1000,
+    maxUses: 0,
+    perCustomer: 1,
+  });
+
+  await fill();
+  assert.equal(
+    (await api("/customer/coupon", "POST", { code: "NOPE" }, shopper)).status,
+    400,
+  );
+  const preview = await (
+    await api("/customer/coupon", "POST", { code: "navneet" }, shopper)
+  ).json();
+  assert.equal(preview.type, "fixed_total");
+
+  // Fixed total: the whole online order costs ₹1 and the gateway is asked for ₹1.
+  const one = await (await place("navneet")).json();
+  assert.equal(one.order.total, 1);
+  assert.equal(one.order.couponCode, "NAVNEET");
+  assert.equal(one.order.discount, 1499);
+  assert.equal(one.order.subtotal, 1500);
+
+  // Percent with a cap: 10% of 1500 = 150, capped at 100. Once per customer.
+  const ten = await (await place("SAVE10", "cod")).json();
+  assert.equal(ten.order.discount, 100);
+  assert.equal(ten.order.total, 1400);
+  assert.equal((await place("SAVE10", "cod")).status, 400);
+
+  // Use limits: NAVNEET allows 2; cancelling an order gives its use back.
+  const two = await (await place("NAVNEET")).json();
+  assert.equal(two.order.total, 1);
+  assert.equal((await place("NAVNEET")).status, 400);
+  await api(`/customer/orders/${two.order.number}/cancel`, "POST", {}, shopper);
+  assert.equal((await place("NAVNEET")).status, 201);
+  const listed = (await (await api("/admin/coupons")).json()).find(
+    (c: { code: string }) => c.code === "NAVNEET",
+  );
+  assert.equal(listed.used, 2);
+
+  // Switched-off coupons stop working immediately.
+  await api(`/admin/coupons/${test.id}`, "PUT", {
+    ...base,
+    code: "NAVNEET",
+    type: "fixed_total",
+    value: 1,
+    maxUses: 5,
+    active: false,
+  });
+  assert.equal(
+    (await api("/customer/coupon", "POST", { code: "NAVNEET" }, shopper))
+      .status,
+    400,
+  );
+  // Code cannot be renamed.
+  assert.equal(
+    (
+      await api(`/admin/coupons/${test.id}`, "PUT", {
+        ...base,
+        code: "OTHER",
+        type: "flat",
+        value: 5,
+        maxUses: 0,
+      })
+    ).status,
+    400,
+  );
+}

@@ -6,6 +6,8 @@ export default function PriceBreakup({
   codFee,
   total,
   items,
+  discount = 0,
+  couponCode = "",
 }: {
   mrp: number;
   subtotal: number;
@@ -13,8 +15,11 @@ export default function PriceBreakup({
   codFee: number;
   total: number;
   items: number;
+  discount?: number;
+  couponCode?: string;
 }) {
-  const saved = Math.max(0, mrp - subtotal);
+  const mrpSaved = Math.max(0, mrp - subtotal);
+  const saved = mrpSaved + discount;
   return (
     <div className="space-y-3 text-sm">
       <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500">
@@ -24,10 +29,10 @@ export default function PriceBreakup({
         <span>Total MRP</span>
         <span>{money(mrp)}</span>
       </p>
-      {saved > 0 && (
+      {mrpSaved > 0 && (
         <p className="flex justify-between">
           <span>Discount on MRP</span>
-          <span className="text-[#03a685]">−{money(saved)}</span>
+          <span className="text-[#03a685]">−{money(mrpSaved)}</span>
         </p>
       )}
       <p className="flex justify-between">
@@ -42,6 +47,12 @@ export default function PriceBreakup({
         <p className="flex justify-between">
           <span>Cash on delivery fee</span>
           <span>{money(codFee)}</span>
+        </p>
+      )}
+      {discount > 0 && (
+        <p className="flex justify-between">
+          <span>Coupon {couponCode && <strong>{couponCode}</strong>}</span>
+          <span className="text-[#03a685]">−{money(discount)}</span>
         </p>
       )}
       <p className="flex justify-between border-t pt-3 text-base font-bold">

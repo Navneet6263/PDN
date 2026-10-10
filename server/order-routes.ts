@@ -9,6 +9,9 @@ import {
 import type { Database } from "./db";
 import type { PaymentProvider } from "./payments";
 import { body, fail } from "./route-utils";
+import { resolveCoupon } from "./coupons";
+import { quoteCart } from "./cart-routes";
+import { cartSchema } from "../lib/shopping";
 import {
   orderNoteSchema,
   orderPaymentSchema,
@@ -56,6 +59,21 @@ export function customerOrderRoutes(
     if (!order) throw fail("Order not found.", 404);
     return order;
   };
+  // Checks a code against the current bag so checkout can preview the price.
+  router.post("/coupon", async (req, res) => {
+    const code = String((req.body as { code?: unknown })?.code || "").slice(
+      0,
+      40,
+    );
+    if (!code.trim()) throw fail("Enter a coupon code.");
+    const quote = await quoteCart(
+      db,
+      cartSchema.parse(res.locals.customer.cart),
+    );
+    res.json(
+      await resolveCoupon(db, code, res.locals.customer, quote.subtotal),
+    );
+  });
   router.post("/orders", async (req, res) => {
     const input = placeOrderSchema.safeParse(req.body);
     if (!input.success)
@@ -183,7 +201,8 @@ export function paymentWebhookRoutes(
         : `${siteOrigin}/orders`;
       try {
         const result = await online.verify(req.body);
-        if (payment) await applyPaymentResult(db, result, `Gateway (${online.id})`);
+        if (payment)
+          await applyPaymentResult(db, result, `Gateway (${online.id})`);
       } catch (error) {
         console.error(`Payment return rejected: ${(error as Error).message}`);
       }

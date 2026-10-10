@@ -9,6 +9,7 @@ Open `http://localhost:3000/admin` (or your site's `/admin`). Use the owner logi
 | Products | Real product details, photos, prices, sizes, colors, package contents, publish/draft status, SEO and product-specific exchange/return/shipping/warranty information. |
 | Top 10 & Search | Assign or remove positions 1–10; set catalog order, featured status, search priority and comma-separated search keywords. |
 | Banners | Desktop/mobile images, text, destination link, hero/promotion placement, display order, enabled state and optional start/end dates. |
+| Coupons | Discount codes for checkout: percent off (with an optional cap), flat ₹ off, or a fixed order total (for payment tests). Set minimum bag value, total uses, uses per customer, allowed customer emails, start/end dates and on/off. The list shows how many times each code has been used; cancelled orders give their use back. |
 | Categories | Navigation labels, category images, subcategories/product types, order and storefront visibility. |
 | Inventory | Search products, filter low/out-of-stock items, increment/decrement stock or enter an exact quantity. |
 | Sales & Regions | Record sales from other channels (shop counter, Instagram, WhatsApp), update return/replacement status, and view totals from those records. Website orders are in Orders and Overview. |
