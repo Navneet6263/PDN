@@ -1,7 +1,11 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { SlidersHorizontal, ArrowDownUp, X } from "lucide-react";
-import { emptyFilters, filterCount, matchesFilters } from "@/lib/catalog-filters";
+import {
+  emptyFilters,
+  filterCount,
+  matchesFilters,
+} from "@/lib/catalog-filters";
 import { orderProducts } from "@/lib/catalog-order";
 import CatalogQuickFilters from "./CatalogQuickFilters";
 import CatalogFilterFields, { type FilterProps } from "./CatalogFilterFields";
@@ -23,7 +27,9 @@ export default function CatalogFilters(
   const sectionFocus = useRef("");
   useEffect(() => {
     const section = document.getElementById("catalog");
-    const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting));
+    const observer = new IntersectionObserver(([entry]) =>
+      setVisible(entry.isIntersecting),
+    );
     if (section) observer.observe(section);
     return () => observer.disconnect();
   }, []);
@@ -37,7 +43,9 @@ export default function CatalogFilters(
     const frame = requestAnimationFrame(() => {
       if (sectionFocus.current)
         dialog.current
-          ?.querySelector<HTMLElement>(`[data-filter-section="${sectionFocus.current}"]`)
+          ?.querySelector<HTMLElement>(
+            `[data-filter-section="${sectionFocus.current}"]`,
+          )
           ?.scrollIntoView({ block: "start" });
     });
     return () => {
@@ -61,9 +69,12 @@ export default function CatalogFilters(
   ).length;
   return (
     <>
-      <CatalogQuickFilters {...props} onOpen={(section) => show(false, section)} />
+      <CatalogQuickFilters
+        {...props}
+        onOpen={(section) => show(false, section)}
+      />
       {visible && (
-        <div className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-2 border-t bg-white px-3 pt-2 pb-[max(8px,env(safe-area-inset-bottom))] shadow-[0_-3px_12px_#0000000a] lg:hidden">
+        <div className="fixed inset-x-0 bottom-[calc(57px+env(safe-area-inset-bottom))] z-30 grid grid-cols-2 border-t bg-white px-3 py-1.5 shadow-[0_-3px_12px_#0000000a] lg:hidden">
           <button
             onClick={() => show(true)}
             className="flex min-h-11 items-center justify-center gap-2 border-r text-xs font-medium text-[#666b79]"
@@ -77,7 +88,8 @@ export default function CatalogFilters(
             className="flex min-h-11 items-center justify-center gap-2 text-xs font-medium text-[#666b79]"
           >
             <SlidersHorizontal size={17} />
-            Filters {filterCount(props.value) ? `(${filterCount(props.value)})` : ""}
+            Filters{" "}
+            {filterCount(props.value) ? `(${filterCount(props.value)})` : ""}
           </button>
         </div>
       )}

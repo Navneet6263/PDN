@@ -27,6 +27,7 @@ import {
   serializeOrder,
   startPayment,
   storeSettings,
+  switchToCod,
 } from "./orders";
 
 const customerView = (row: Parameters<typeof serializeOrder>[0]) => {
@@ -150,6 +151,11 @@ export function customerOrderRoutes(
     if (!payment || payment.orderId !== order.id)
       throw fail("Payment does not match this order.");
     await applyPaymentResult(db, result, "Customer");
+    res.json(customerView(await own(res.locals.customer.id, order.number)));
+  });
+  router.post("/orders/:number/cod", async (req, res) => {
+    const order = await own(res.locals.customer.id, String(req.params.number));
+    await switchToCod(db, order.id);
     res.json(customerView(await own(res.locals.customer.id, order.number)));
   });
   router.post("/orders/:number/cancel", async (req, res) => {

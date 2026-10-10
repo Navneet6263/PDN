@@ -57,8 +57,8 @@ test("spelling suggestions, guest bag, login, saved checkout and mobile layouts"
     for (const [label, value] of [
       ["Full name", "Shopping Test"],
       ["Mobile number", "9876543210"],
-      ["House, street & locality", "12 Testing Street"],
-      ["City", "Delhi"],
+      ["House no., building, street, area", "12 Testing Street"],
+      ["City / district", "Delhi"],
       ["State", "Delhi"],
       ["PIN code", "110001"],
     ])
@@ -69,11 +69,15 @@ test("spelling suggestions, guest bag, login, saved checkout and mobile layouts"
     await expect(page.getByText("12 Testing Street")).toBeVisible();
     await page.reload();
     await expect(page.getByText("12 Testing Street")).toBeVisible();
+    await page.getByRole("button", { name: "Continue to payment" }).click();
+    await expect(page).toHaveURL(/\/checkout\/payment$/);
     await expect(
       page.getByRole("radio", { name: /Cash on delivery/ }),
     ).toBeVisible();
-    await page.getByRole("button", { name: "Change" }).click();
-    await expect(page.getByLabel("House, street & locality")).toHaveValue(
+    await expect(page.getByText("Deliver to")).toBeVisible();
+    await page.getByRole("link", { name: "Change" }).click();
+    await page.getByRole("button", { name: "Edit" }).click();
+    await expect(page.getByLabel("House no., building, street, area")).toHaveValue(
       "12 Testing Street",
     );
     await mkdir("artifacts", { recursive: true });

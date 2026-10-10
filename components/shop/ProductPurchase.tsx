@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import type { Product } from "@/lib/types";
+import { ShoppingBag } from "lucide-react";
+import { money, type Product } from "@/lib/types";
 import { useShopping } from "./ShoppingProvider";
 export default function ProductPurchase({ product: p }: { product: Product }) {
   const { add, ready, busy, error } = useShopping();
@@ -9,7 +10,24 @@ export default function ProductPurchase({ product: p }: { product: Product }) {
     p.sizes.length === 1 ? p.sizes[0] : p.sizes.length ? "" : "One size",
   );
   const [color, setColor] = useState(p.colors[0] || ""),
-    [note, setNote] = useState("");
+    [note, setNote] = useState(""),
+    [added, setAdded] = useState(false);
+  async function addToBag() {
+    if (!size) {
+      setNote("Please select your size first.");
+      document
+        .getElementById("purchase")
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    try {
+      await add({ productId: p.id, size, color, quantity: 1 });
+      setAdded(true);
+      setNote("Added to your bag. Your picks stay saved when you sign in.");
+    } catch (e) {
+      setNote((e as Error).message);
+    }
+  }
   return (
     <section
       id="purchase"
@@ -50,18 +68,7 @@ export default function ProductPurchase({ product: p }: { product: Product }) {
       )}
       <button
         disabled={!ready || busy || !p.stock}
-        onClick={async () => {
-          if (!size) {
-            setNote("Please select your size first.");
-            return;
-          }
-          try {
-            await add({ productId: p.id, size, color, quantity: 1 });
-            setNote("Added to your bag. Your picks stay saved when you sign in.");
-          } catch (e) {
-            setNote((e as Error).message);
-          }
-        }}
+        onClick={() => void addToBag()}
         className="w-full rounded-lg bg-[#ff3f6c] px-6 py-4 text-sm font-bold text-white disabled:opacity-50"
       >
         {!p.stock ? "Out of stock" : busy ? "Adding..." : "Add to bag"}
@@ -71,6 +78,32 @@ export default function ProductPurchase({ product: p }: { product: Product }) {
           {note || error}
         </p>
       )}
+      {/* Mobile: price and the bag button stay in thumb reach while scrolling. */}
+      <div className="fixed inset-x-0 bottom-0 z-30 flex items-center gap-3 border-t bg-white px-4 py-3 shadow-[0_-4px_16px_#0000000f] lg:hidden">
+        <div className="min-w-0 flex-1">
+          <p className="text-lg font-bold leading-tight">{money(p.price)}</p>
+          <p className="truncate text-[11px] text-gray-500">
+            {size ? `Size ${size}` : "Select a size"}
+          </p>
+        </div>
+        {added ? (
+          <Link
+            href="/cart"
+            className="flex items-center gap-2 rounded-md bg-[#ff3f6c] px-6 py-3.5 text-sm font-bold uppercase tracking-wide text-white"
+          >
+            Go to bag →
+          </Link>
+        ) : (
+          <button
+            disabled={!ready || busy || !p.stock}
+            onClick={() => void addToBag()}
+            className="flex items-center gap-2 rounded-md bg-[#ff3f6c] px-6 py-3.5 text-sm font-bold uppercase tracking-wide text-white disabled:opacity-50"
+          >
+            <ShoppingBag size={16} />
+            {!p.stock ? "Sold out" : busy ? "Adding..." : "Add to bag"}
+          </button>
+        )}
+      </div>
       <div className="flex justify-between text-xs">
         <Link href="/cart" className="font-bold text-[#ff3f6c]">
           View bag →

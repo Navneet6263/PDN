@@ -24,6 +24,80 @@ const when = (iso: string) =>
     timeStyle: "short",
   });
 
+const lastAttemptFailed = (o: Order) => o.payments?.at(-1)?.status === "failed";
+
+function PendingPayment({
+  order,
+  busy,
+  onRetry,
+  onCod,
+}: {
+  order: Order;
+  busy: boolean;
+  onRetry: () => void;
+  onCod: () => void;
+}) {
+  const deadline = new Date(order.placedAt).getTime() + 30 * 60000;
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const left = Math.max(0, deadline - now);
+  const mm = String(Math.floor(left / 60000)).padStart(2, "0");
+  const ss = String(Math.floor((left % 60000) / 1000)).padStart(2, "0");
+  const failed = lastAttemptFailed(order);
+  const reason = order.payments?.at(-1)?.failureReason;
+  return (
+    <div
+      className={`rounded-2xl border p-5 ${failed ? "border-red-200 bg-red-50 text-red-900" : "border-amber-200 bg-amber-50 text-amber-900"}`}
+    >
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-lg font-bold">
+            {failed ? "Payment failed" : "Waiting for payment confirmation"}
+          </p>
+          <p className="mt-1 text-sm">
+            {failed
+              ? `${reason ? `${reason}. ` : ""}No money was taken for this attempt. Your items are still reserved.`
+              : "If you have paid, this page updates as soon as the bank confirms. Otherwise, complete the payment below."}
+          </p>
+        </div>
+        {left > 0 && (
+          <p className="shrink-0 rounded-lg bg-white/70 px-3 py-2 text-center text-xs">
+            Items held for
+            <span className="block font-mono text-xl font-bold">
+              {mm}:{ss}
+            </span>
+          </p>
+        )}
+      </div>
+      {left > 0 ? (
+        <div className="mt-4 flex flex-wrap gap-3">
+          <button
+            disabled={busy}
+            onClick={onRetry}
+            className="rounded-md bg-[#ff3f6c] px-6 py-3 text-sm font-bold text-white"
+          >
+            {failed ? "Retry payment" : "Pay"} {money(order.total)}
+          </button>
+          <button
+            disabled={busy}
+            onClick={onCod}
+            className="rounded-md border border-current bg-white px-5 py-3 text-sm font-bold"
+          >
+            Pay on delivery instead
+          </button>
+        </div>
+      ) : (
+        <p className="mt-3 text-sm font-semibold">
+          Time is up. This order will be cancelled and the items released.
+        </p>
+      )}
+    </div>
+  );
+}
+
 export default function OrderDetail({ number }: { number: string }) {
   const { customer, ready } = useShopping();
   const placed = useSearchParams().get("placed") === "1";
@@ -38,6 +112,21 @@ export default function OrderDetail({ number }: { number: string }) {
         .then(setOrder)
         .catch((e) => setError(e.message));
   }, [customer, number]);
+  // Just back from the gateway: its confirmation can land a few seconds after
+  // the customer does, so check again for a short while.
+  const waiting =
+    placed && order?.status === "pending_payment" && !lastAttemptFailed(order);
+  useEffect(() => {
+    if (!waiting) return;
+    let tries = 0;
+    const timer = setInterval(() => {
+      if (++tries > 20) return clearInterval(timer);
+      request<Order>(`/customer/orders/${encodeURIComponent(number)}`)
+        .then(setOrder)
+        .catch(() => undefined);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [waiting, number]);
 
   if (!ready) return <p>Loading your order...</p>;
   if (!customer)
@@ -80,7 +169,6 @@ export default function OrderDetail({ number }: { number: string }) {
     (s, i) => s + Math.max(i.mrp, i.unitPrice) * i.quantity,
     0,
   );
-  const lastFailed = order.payments?.at(-1)?.status === "failed";
   return (
     <div className="space-y-6">
       {dialog}
@@ -97,34 +185,27 @@ export default function OrderDetail({ number }: { number: string }) {
         </div>
       )}
       {order.status === "pending_payment" && (
-        <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-amber-50 p-5 text-amber-900">
-          <div>
-            <p className="font-bold">
-              {lastFailed ? "Payment did not go through" : "Payment pending"}
-            </p>
-            <p className="text-sm">
-              Complete payment within 30 minutes of placing the order, or it is
-              cancelled and the items are released.
-            </p>
-          </div>
-          <button
-            disabled={busy}
-            onClick={() =>
-              void act(async () => {
-                const { checkout } = await request<{
-                  checkout: PaymentCheckout;
-                }>(
-                  `/customer/orders/${encodeURIComponent(order.number)}/pay`,
-                  {},
-                );
-                return pay(order.number, checkout, order.total);
-              })
-            }
-            className="rounded bg-[#ff3f6c] px-6 py-3 text-sm font-bold text-white"
-          >
-            Pay {money(order.total)}
-          </button>
-        </div>
+        <PendingPayment
+          order={order}
+          busy={busy}
+          onRetry={() =>
+            void act(async () => {
+              const { checkout } = await request<{ checkout: PaymentCheckout }>(
+                `/customer/orders/${encodeURIComponent(order.number)}/pay`,
+                {},
+              );
+              return pay(order.number, checkout, order.total);
+            })
+          }
+          onCod={() =>
+            void act(() =>
+              request<Order>(
+                `/customer/orders/${encodeURIComponent(order.number)}/cod`,
+                {},
+              ),
+            )
+          }
+        />
       )}
       {error && (
         <p role="alert" className="rounded bg-red-50 p-4 text-sm text-red-700">

@@ -458,3 +458,49 @@ export async function expireStaleOrders(db: Database) {
     ).catch(() => undefined);
   return stale.length;
 }
+
+// Lets a customer whose online payment failed keep the order and pay on
+// delivery instead. Stock stays reserved; totals pick up the COD fee.
+export async function switchToCod(db: Database, orderId: string) {
+  return db.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT id FROM "Order" WHERE id = ${orderId} FOR UPDATE`;
+    const order = await tx.order.findUniqueOrThrow({ where: { id: orderId } });
+    if (order.status !== "pending_payment" || order.paymentStatus === "paid")
+      throw fail("This order is not waiting for payment.", 409);
+    const settings = charges(await storeSettings(tx));
+    const codFee = settings.codFee;
+    const total = Math.round((Number(order.total) + codFee) * 100) / 100;
+    if (!codAllowed(settings, total))
+      throw fail("Cash on delivery is not available for this order.");
+    await tx.payment.updateMany({
+      where: {
+        orderId,
+        status: { in: ["pending", "failed"] },
+        method: "online",
+      },
+      data: {
+        status: "failed",
+        failureReason: "Customer switched to cash on delivery",
+      },
+    });
+    return tx.order.update({
+      where: { id: orderId },
+      data: {
+        paymentMethod: "cod",
+        paymentStatus: "pending",
+        status: "confirmed",
+        codFee,
+        total,
+        payments: { create: { provider: "cod", method: "cod", amount: total } },
+        events: {
+          create: {
+            kind: "status",
+            status: "confirmed",
+            message: "Switched to cash on delivery. Order confirmed.",
+            actor: "Customer",
+          },
+        },
+      },
+    });
+  });
+}

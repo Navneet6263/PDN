@@ -480,6 +480,21 @@ export async function checkCoupons(api: Api) {
   );
   assert.equal(listed.used, 2);
 
+  // A customer whose online payment failed can switch the order to COD.
+  const unpaid = (await (await place("")).json()).order;
+  assert.equal(unpaid.status, "pending_payment");
+  const switched = await (
+    await api(`/customer/orders/${unpaid.number}/cod`, "POST", {}, shopper)
+  ).json();
+  assert.equal(switched.status, "confirmed");
+  assert.equal(switched.paymentMethod, "cod");
+  assert.equal(switched.total, unpaid.total);
+  assert.equal(
+    (await api(`/customer/orders/${unpaid.number}/cod`, "POST", {}, shopper))
+      .status,
+    409,
+  );
+
   // Switched-off coupons stop working immediately.
   await api(`/admin/coupons/${test.id}`, "PUT", {
     ...base,

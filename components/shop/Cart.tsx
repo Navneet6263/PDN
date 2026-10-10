@@ -82,7 +82,7 @@ export default function Cart() {
       ) : !quote ? (
         <p>Checking current prices and availability...</p>
       ) : (
-        <div className="grid items-start gap-8 lg:grid-cols-[1fr_340px]">
+        <div className="grid items-start gap-8 pb-24 lg:grid-cols-[1fr_340px] lg:pb-0">
           <div className="space-y-4">
             {quote.lines.map((line, index) => (
               <article
@@ -231,6 +231,26 @@ export default function Cart() {
               Your guest bag stays with you after login.
             </p>
           </aside>
+          <div className="fixed inset-x-0 bottom-0 z-30 flex items-center gap-4 border-t bg-white px-4 py-3 shadow-[0_-4px_16px_#0000000f] lg:hidden">
+            <div className="min-w-0 flex-1">
+              <p className="text-lg font-bold leading-tight">
+                {money(quote.subtotal)}
+              </p>
+              <p className="text-[11px] text-gray-500">
+                {items.reduce((s, i) => s + i.quantity, 0)} items in bag
+              </p>
+            </div>
+            <Link
+              aria-disabled={!quote.valid || busy}
+              onClick={(e) => {
+                if (!quote.valid || busy) e.preventDefault();
+              }}
+              href={customer ? "/checkout" : "/account"}
+              className={`rounded-md bg-[#ff3f6c] px-6 py-3.5 text-sm font-bold uppercase tracking-wide text-white ${!quote.valid || busy ? "opacity-50" : ""}`}
+            >
+              {customer ? "Place order" : "Sign in"}
+            </Link>
+          </div>
         </div>
       )}
     </>

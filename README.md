@@ -56,7 +56,14 @@ Start the database again after stopping all servers or restarting your computer.
 
 For offline UI development, `IMAGE_STORAGE=local` saves optimized uploads under `uploads/`. Hosted deployment must use Cloudinary. The application refuses to start in Cloudinary mode when credentials are missing.
 
+## Studio catalog
+
+`npx tsx scripts/load-catalog.ts` loads 191 distinct products (women, men, kids, footwear, accessories) with studio-style photos and hides older preview listings that shared photos. See [CATALOG-NOTES.md](CATALOG-NOTES.md) for where the photos come from and what to replace before selling.
+
 ## Orders & payments
+
+Checkout is three focused steps with their own header (Bag → Address → Payment) and sticky price/Pay bars on phones. The payment page (`/checkout/payment`) has a sticky "Pay now" bar with the delivery address, coupon entry and the price breakup. If an online payment fails or is still pending, the order page shows a 30-minute countdown, **Retry payment** and **Pay on delivery instead**.
+
 
 Customers can order with **cash on delivery** out of the box. Delivery fee, free-delivery amount and COD rules are in **Admin → Store Settings → Payments & delivery**. Order handling is described in [ADMIN-GUIDE.md](ADMIN-GUIDE.md#orders).
 

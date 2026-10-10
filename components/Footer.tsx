@@ -10,7 +10,9 @@ export default async function Footer() {
             {s.storeName}
             <span className="text-[#ff3f6c]">.</span>
           </Link>
-          <p className="mt-4 max-w-xs text-xs leading-6 text-[#858896]">{s.footerText}</p>
+          <p className="mt-4 max-w-xs text-xs leading-6 text-[#858896]">
+            {s.footerText}
+          </p>
         </div>
         <div>
           <h2 className="mb-5 text-[11px] font-bold uppercase tracking-widest">
@@ -29,7 +31,9 @@ export default async function Footer() {
           </div>
         </div>
         <div>
-          <h2 className="mb-5 text-[11px] font-bold uppercase tracking-widest">Make it your own</h2>
+          <h2 className="mb-5 text-[11px] font-bold uppercase tracking-widest">
+            Make it your own
+          </h2>
           <div className="grid gap-3 text-xs text-[#727583]">
             <Link href="/#top-ten">The Top 10 edit</Link>
             <Link href="/#catalog">Explore all styles</Link>
@@ -38,9 +42,12 @@ export default async function Footer() {
           </div>
         </div>
         <div>
-          <h2 className="mb-5 text-[11px] font-bold uppercase tracking-widest">Here to help</h2>
+          <h2 className="mb-5 text-[11px] font-bold uppercase tracking-widest">
+            Here to help
+          </h2>
           <p className="text-xs leading-6 text-[#727583]">
-            Check each product for package details, available sizes and store policies.
+            Check each product for package details, available sizes and store
+            policies.
           </p>
           {s.contactEmail && (
             <a
@@ -53,7 +60,7 @@ export default async function Footer() {
           {s.contactPhone && <p className="mt-3 text-xs">{s.contactPhone}</p>}
         </div>
       </div>
-      <div className="shell border-t py-6 text-[10px] text-[#9294a0]">
+      <div className="shell border-t pb-24 pt-6 text-[10px] text-[#9294a0] xl:pb-6">
         © {new Date().getFullYear()} {s.storeName}. All rights reserved.
       </div>
     </footer>

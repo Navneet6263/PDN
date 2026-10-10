@@ -1,17 +1,16 @@
-import Header from "@/components/Header";
-import Checkout from "@/components/shop/Checkout";
-import Footer from "@/components/Footer";
-import ShoppingSteps from "@/components/shop/ShoppingSteps";
-export const metadata = { title: "Checkout", robots: { index: false, follow: false } };
+import CheckoutHeader from "@/components/shop/CheckoutHeader";
+import AddressStep from "@/components/shop/AddressStep";
+export const metadata = {
+  title: "Delivery address",
+  robots: { index: false, follow: false },
+};
 export default function Page() {
   return (
-    <div className="storefront min-h-screen">
-      <Header />
-      <main className="shell min-h-[60vh] py-8 md:py-12">
-        <ShoppingSteps current="address" />
-        <Checkout />
+    <div className="storefront min-h-screen bg-[#f7f7f8]">
+      <CheckoutHeader current="address" />
+      <main className="mx-auto min-h-[70vh] max-w-[1200px] px-4 py-5 sm:px-8 sm:py-8">
+        <AddressStep />
       </main>
-      <Footer />
     </div>
   );
 }

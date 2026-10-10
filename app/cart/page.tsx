@@ -1,17 +1,16 @@
-import Header from "@/components/Header";
+import CheckoutHeader from "@/components/shop/CheckoutHeader";
 import Cart from "@/components/shop/Cart";
-import Footer from "@/components/Footer";
-import ShoppingSteps from "@/components/shop/ShoppingSteps";
-export const metadata = { title: "Shopping bag", robots: { index: false, follow: false } };
+export const metadata = {
+  title: "Shopping bag",
+  robots: { index: false, follow: false },
+};
 export default function Page() {
   return (
-    <div className="storefront min-h-screen">
-      <Header />
-      <main className="shell min-h-[60vh] py-8 md:py-12">
-        <ShoppingSteps current="bag" />
+    <div className="storefront min-h-screen bg-[#f7f7f8]">
+      <CheckoutHeader current="bag" />
+      <main className="mx-auto min-h-[70vh] max-w-[1200px] px-4 py-5 sm:px-8 sm:py-8">
         <Cart />
       </main>
-      <Footer />
     </div>
   );
 }
