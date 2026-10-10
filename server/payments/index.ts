@@ -1,3 +1,4 @@
+import { payu } from "./payu";
 import { razorpay } from "./razorpay";
 import { testGateway } from "./test-gateway";
 import type { PaymentProvider } from "./types";
@@ -9,6 +10,18 @@ export { PaymentError } from "./types";
 export function onlineProviderFromEnv(
   env = process.env,
 ): PaymentProvider | null {
+  if (env.PAYU_MERCHANT_KEY && env.PAYU_MERCHANT_SALT) {
+    if (env.PAYU_MODE === "live" && !env.SITE_URL?.startsWith("https://"))
+      throw new Error(
+        "Set SITE_URL to your https:// address before using live PayU.",
+      );
+    return payu({
+      key: env.PAYU_MERCHANT_KEY,
+      salt: env.PAYU_MERCHANT_SALT,
+      mode: env.PAYU_MODE === "live" ? "live" : "test",
+      siteUrl: env.SITE_URL || "http://localhost:3000",
+    });
+  }
   if (env.RAZORPAY_KEY_ID && env.RAZORPAY_KEY_SECRET)
     return razorpay({
       keyId: env.RAZORPAY_KEY_ID,

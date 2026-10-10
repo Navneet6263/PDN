@@ -158,8 +158,38 @@ export function customerOrderRoutes(
 export function paymentWebhookRoutes(
   db: Database,
   online: PaymentProvider | null,
+  siteOrigin = "",
 ) {
   const router = Router();
+  // Redirect-style gateways (PayU) post the signed result here from the
+  // customer's browser, then we send the customer to their order page.
+  // SameSite cookies are not sent on this cross-site post, so the signature,
+  // not the session, identifies the payment.
+  router.post(
+    "/payments/return/:provider",
+    express.urlencoded({ extended: false, limit: "100kb" }),
+    async (req, res) => {
+      if (!online || online.id !== req.params.provider)
+        throw fail("Unknown payment provider.", 404);
+      const txnid = String((req.body as Record<string, unknown>)?.txnid || "");
+      const payment = txnid
+        ? await db.payment.findUnique({
+            where: { providerOrderId: txnid },
+            include: { order: { select: { number: true } } },
+          })
+        : null;
+      const target = payment
+        ? `${siteOrigin}/orders/${encodeURIComponent(payment.order.number)}?placed=1`
+        : `${siteOrigin}/orders`;
+      try {
+        const result = await online.verify(req.body);
+        if (payment) await applyPaymentResult(db, result, `Gateway (${online.id})`);
+      } catch (error) {
+        console.error(`Payment return rejected: ${(error as Error).message}`);
+      }
+      res.redirect(303, target);
+    },
+  );
   router.post(
     "/payments/webhook/:provider",
     express.raw({ type: "*/*", limit: "1mb" }),

@@ -313,6 +313,17 @@ export async function applyPaymentResult(
     });
     if (payment.status === "paid" || payment.status === "refunded")
       return order;
+    if (result.status === "pending") return order;
+    if (
+      result.status === "paid" &&
+      result.amount !== undefined &&
+      Math.round(result.amount * 100) !== Math.round(Number(payment.amount) * 100)
+    )
+      result = {
+        ...result,
+        status: "failed",
+        reason: `Amount mismatch: gateway reported ${result.amount}, expected ${Number(payment.amount)}`,
+      };
     if (result.status === "failed") {
       await tx.payment.update({
         where: { id: payment.id },

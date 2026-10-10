@@ -15,8 +15,11 @@ export type CreatedPayment = {
 export type PaymentResult = {
   providerOrderId: string;
   providerPaymentId: string;
-  status: "paid" | "failed";
+  // "pending": the gateway has not decided yet; a later webhook will.
+  status: "paid" | "failed" | "pending";
   reason?: string;
+  // Amount the gateway says it collected, checked against the attempt.
+  amount?: number;
 };
 
 // Every online gateway implements this contract. Order code never talks to a

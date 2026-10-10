@@ -60,7 +60,18 @@ For offline UI development, `IMAGE_STORAGE=local` saves optimized uploads under 
 
 Customers can order with **cash on delivery** out of the box. Delivery fee, free-delivery amount and COD rules are in **Admin → Store Settings → Payments & delivery**. Order handling is described in [ADMIN-GUIDE.md](ADMIN-GUIDE.md#orders).
 
-Online payment is enabled by adding gateway keys to `.env` and restarting:
+Online payment is enabled by adding one gateway's keys to `.env` and restarting. **PayU** (PayU Hosted Checkout):
+
+```dotenv
+PAYU_MERCHANT_KEY=your_key
+PAYU_MERCHANT_SALT=your_salt_v1
+PAYU_MODE=test        # live after a successful test payment
+SITE_URL=https://your-domain
+```
+
+Customers are sent to PayU's payment page and come back to `/api/payments/return/payu`, which checks PayU's SHA-512 hash and the amount before marking the order paid. In the PayU dashboard, add `https://YOUR-DOMAIN/api/payments/webhook/payu` as the webhook for successful and failed payments so payments are recorded even if the customer closes the browser before returning. Refunds are issued from the PayU dashboard, then recorded with **Record refund** in admin. The PayU integration is tested against PayU's documented hash formula and a simulated PayU response, not yet against a live PayU account.
+
+**Razorpay** instead:
 
 ```dotenv
 RAZORPAY_KEY_ID=rzp_live_...

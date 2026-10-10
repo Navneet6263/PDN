@@ -36,14 +36,15 @@ export function createApp(db: Database, config: ServerConfig) {
     if (
       !["GET", "HEAD", "OPTIONS"].includes(req.method) &&
       req.headers.origin !== config.origin &&
-      !req.path.startsWith("/api/payments/webhook/")
+      !req.path.startsWith("/api/payments/webhook/") &&
+      !req.path.startsWith("/api/payments/return/")
     ) {
       res.status(403).json({ error: "Request origin is not allowed." });
       return;
     }
     next();
   });
-  app.use("/api", paymentWebhookRoutes(db, online));
+  app.use("/api", paymentWebhookRoutes(db, online, config.origin));
   app.use(express.json({ limit: "100kb" }));
   const uploadDir = resolve(config.uploadDir || "uploads");
   if (config.imageStorage !== "cloudinary") {

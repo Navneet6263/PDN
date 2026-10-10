@@ -1,8 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createHmac } from "node:crypto";
+import { createHash, createHmac } from "node:crypto";
 import { createServer } from "node:http";
 import { razorpay } from "../server/payments/razorpay";
+import { payu } from "../server/payments/payu";
 import { orderTotals } from "../lib/orders";
 
 const hmac = (secret: string, data: string) =>
@@ -94,4 +95,79 @@ test("order totals apply free-shipping threshold and COD fee", () => {
     orderTotals(0.1 + 0.2, { ...s, shippingFee: 0 }, "online").total,
     0.3,
   );
+});
+
+test("payu signs the hosted checkout form and verifies PayU's response hash", async () => {
+  const sha = (s: string) => createHash("sha512").update(s).digest("hex");
+  const gateway = payu({
+    key: "TESTKEY",
+    salt: "TESTSALT",
+    mode: "test",
+    siteUrl: "https://pdn.example.in",
+  });
+  const created = await gateway.create({
+    orderNumber: "TS261010-ABC",
+    paymentId: "pay1",
+    amount: 679,
+    currency: "INR",
+    storeName: "Terra",
+    customer: { name: "Priya (Sharma)", email: "p@x.in", phone: "9876543210" },
+  });
+  const f = created.checkout.fields as Record<string, string>;
+  assert.equal(created.checkout.action, "https://test.payu.in/_payment");
+  assert.equal(f.amount, "679.00");
+  assert.equal(f.firstname, "Priya Sharma");
+  assert.equal(f.surl, "https://pdn.example.in/api/payments/return/payu");
+  assert.equal(f.txnid, created.providerOrderId);
+  assert.equal(
+    f.hash,
+    sha(
+      `TESTKEY|${f.txnid}|679.00|${f.productinfo}|Priya Sharma|p@x.in|TS261010-ABC||||||||||TESTSALT`,
+    ),
+  );
+
+  const reply = (
+    status: string,
+    amount = "679.00",
+    extra: Record<string, string> = {},
+  ) => {
+    const base = `TESTSALT|${status}||||||||||TS261010-ABC|p@x.in|Priya Sharma|${f.productinfo}|${amount}|${f.txnid}|TESTKEY`;
+    return {
+      key: "TESTKEY",
+      txnid: f.txnid,
+      status,
+      amount,
+      productinfo: f.productinfo,
+      firstname: "Priya Sharma",
+      email: "p@x.in",
+      udf1: "TS261010-ABC",
+      mihpayid: "403993715531",
+      hash: sha(
+        extra.additionalCharges ? `${extra.additionalCharges}|${base}` : base,
+      ),
+      ...extra,
+    };
+  };
+  const ok = await gateway.verify(reply("success"));
+  assert.equal(ok.status, "paid");
+  assert.equal(ok.amount, 679);
+  assert.equal(ok.providerPaymentId, "403993715531");
+  assert.equal((await gateway.verify(reply("failure"))).status, "failed");
+  assert.equal((await gateway.verify(reply("pending"))).status, "pending");
+  assert.equal(
+    (
+      await gateway.verify(
+        reply("success", "679.00", { additionalCharges: "12.00" }),
+      )
+    ).status,
+    "paid",
+  );
+  // Changing any signed field (here the amount) breaks the hash.
+  await assert.rejects(gateway.verify({ ...reply("success"), amount: "1.00" }));
+  await assert.rejects(gateway.verify({ ...reply("success"), key: "OTHER" }));
+  const hook = await gateway.webhook!(
+    Buffer.from(new URLSearchParams(reply("success")).toString()),
+    {},
+  );
+  assert.equal(hook?.status, "paid");
 });

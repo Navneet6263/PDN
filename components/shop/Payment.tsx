@@ -69,6 +69,25 @@ export function usePayment() {
         rzp.open();
       });
     }
+    if (checkout.provider === "payu") {
+      // PayU is a full-page redirect: post the signed form and leave the page.
+      // PayU sends the customer back to their order page when done.
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = String(checkout.action);
+      for (const [name, value] of Object.entries(
+        checkout.fields as Record<string, string>,
+      )) {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
+      }
+      document.body.appendChild(form);
+      form.submit();
+      return new Promise<Order | null>(() => undefined);
+    }
     if (checkout.provider === "test") {
       const outcome = await new Promise<"success" | "failure" | null>((done) =>
         setTest({ checkout, amount, done }),
