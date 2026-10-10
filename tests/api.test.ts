@@ -14,6 +14,8 @@ import seed from "./fixtures/demo-products.json";
 import { checkControls, checkRoles } from "./admin-controls";
 import { checkShopping } from "./customer-flow";
 import { checkCollections } from "./banner-collections";
+import { checkOrders } from "./order-flow";
+import { testGateway } from "../server/payments/test-gateway";
 let connection: Client,
   db: Database,
   server: Server,
@@ -51,6 +53,7 @@ before(async () => {
     origin,
     secure: false,
     uploadDir: directory,
+    onlinePayment: testGateway(),
   });
   server = app.listen(0, "127.0.0.1");
   await new Promise<void>((resolve) => server.once("listening", resolve));
@@ -225,6 +228,9 @@ test("team roles, revoked sessions, support and sales use real records", async (
   checkRoles(api));
 test("customer cart merges once, checkout validates and photo reviews persist", async () =>
   checkShopping(api, base));
+
+test("orders reserve stock, take COD or online payment and follow fulfilment rules", async () =>
+  checkOrders(api, base));
 
 test("festival banner selections validate, persist and respect scheduling", async () =>
   checkCollections(api));

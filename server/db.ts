@@ -2,14 +2,27 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient, type Prisma } from "../generated/prisma/client";
 import type { Product } from "../lib/types";
 export function openDatabase(url = process.env.DATABASE_URL) {
-  if (!url) throw new Error("Set DATABASE_URL in .env to your PostgreSQL connection string.");
+  if (!url)
+    throw new Error(
+      "Set DATABASE_URL in .env to your PostgreSQL connection string.",
+    );
   const schema = new URL(url).searchParams.get("schema") || "public";
   // Prisma's local PGlite server has one underlying connection. Queue local
   // queries instead of opening competing pool connections to it.
-  const local = ["localhost", "127.0.0.1", "[::1]"].includes(new URL(url).hostname);
+  const local = ["localhost", "127.0.0.1", "[::1]"].includes(
+    new URL(url).hostname,
+  );
   return new PrismaClient({
     adapter: new PrismaPg(
-      { connectionString: url, max: local ? 1 : 10, connectionTimeoutMillis: 10000 },
+      {
+        connectionString: url,
+        max: local ? 1 : 10,
+        connectionTimeoutMillis: 10000,
+        // Raw SQL (row locks) must resolve tables in the same schema as model queries.
+        ...(schema === "public"
+          ? {}
+          : { options: `-c search_path="${schema}"` }),
+      },
       { schema },
     ),
   });
@@ -29,7 +42,10 @@ function serialize(row: Row): Product {
     })),
   };
 }
-export async function readProducts(db: Database, admin = false): Promise<Product[]> {
+export async function readProducts(
+  db: Database,
+  admin = false,
+): Promise<Product[]> {
   const products = (
     await db.product.findMany({
       where: admin ? {} : { published: true, categoryRecord: { active: true } },
@@ -51,14 +67,21 @@ export async function readProducts(db: Database, admin = false): Promise<Product
     ratingAverage: summary.get(p.id)?._avg.rating || null,
   }));
 }
-export async function readProduct(db: Database, slug: string): Promise<Product | null> {
+export async function readProduct(
+  db: Database,
+  slug: string,
+): Promise<Product | null> {
   const p = await db.product.findFirst({
     where: { slug, published: true, categoryRecord: { active: true } },
     include,
   });
   return p ? serialize(p) : null;
 }
-export async function saveProduct(db: Database, data: Omit<Product, "id">, id?: string) {
+export async function saveProduct(
+  db: Database,
+  data: Omit<Product, "id">,
+  id?: string,
+) {
   // Nested writes keep product fields and package items in one transaction.
   const { packageContents, ...fields } = data;
   const items = packageContents.map((item, position) => ({

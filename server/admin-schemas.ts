@@ -30,6 +30,11 @@ export const settingsSchema = z.object({
   exchangePolicy: text(5000),
   shippingInfo: text(3000),
   warrantyInfo: text(3000),
+  shippingFee: z.number().min(0).max(100000).default(79),
+  freeShippingAbove: z.number().min(0).max(10000000).default(999),
+  codEnabled: z.boolean().default(true),
+  codFee: z.number().min(0).max(100000).default(0),
+  codMaxOrder: z.number().min(0).max(10000000).default(10000),
 });
 export const categorySchema = z.object({
   slug: text(80).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
@@ -100,3 +105,28 @@ export const stockSchema = z.union([
   z.object({ stock: z.number().int().min(0).max(1000000) }),
   z.object({ delta: z.union([z.literal(-1), z.literal(1)]) }),
 ]);
+export const orderUpdateSchema = z.object({
+  status: z
+    .enum([
+      "pending_payment",
+      "confirmed",
+      "packed",
+      "shipped",
+      "out_for_delivery",
+      "delivered",
+      "cancelled",
+      "returned",
+    ])
+    .optional(),
+  courier: text(80).optional(),
+  trackingNumber: text(80).optional(),
+  trackingUrl: z
+    .union([z.literal(""), z.url({ protocol: /^https$/ }).max(500)])
+    .optional(),
+  note: text(1000).optional(),
+});
+export const orderPaymentSchema = z.object({
+  status: z.enum(["paid", "refunded"]),
+  note: text(1000).default(""),
+});
+export const orderNoteSchema = z.object({ text: text(2000).min(1) });

@@ -1,4 +1,8 @@
-import express, { type Request, type Response, type NextFunction } from "express";
+import express, {
+  type Request,
+  type Response,
+  type NextFunction,
+} from "express";
 import { mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { Prisma } from "../generated/prisma/client";
@@ -15,41 +19,65 @@ import { customerAuth } from "./customer-auth";
 import { cartRoutes, quoteCart } from "./cart-routes";
 import { reviewRoutes } from "./review-routes";
 import { cartSchema } from "../lib/shopping";
+import {
+  adminOrderRoutes,
+  customerOrderRoutes,
+  paymentOptions,
+  paymentWebhookRoutes,
+} from "./order-routes";
 export function createApp(db: Database, config: ServerConfig) {
   const app = express();
   app.disable("x-powered-by");
   const auth = createAuth(db, config);
+  const online = config.onlinePayment || null;
   app.use((req, res, next) => {
     res.set("X-Content-Type-Options", "nosniff");
     if (req.path.startsWith("/api")) res.set("Cache-Control", "no-store");
-    if (!["GET", "HEAD", "OPTIONS"].includes(req.method) && req.headers.origin !== config.origin) {
+    if (
+      !["GET", "HEAD", "OPTIONS"].includes(req.method) &&
+      req.headers.origin !== config.origin &&
+      !req.path.startsWith("/api/payments/webhook/")
+    ) {
       res.status(403).json({ error: "Request origin is not allowed." });
       return;
     }
     next();
   });
+  app.use("/api", paymentWebhookRoutes(db, online));
   app.use(express.json({ limit: "100kb" }));
   const uploadDir = resolve(config.uploadDir || "uploads");
   if (config.imageStorage !== "cloudinary") {
     mkdirSync(uploadDir, { recursive: true });
-    app.use("/media", express.static(uploadDir, { immutable: true, maxAge: "1y" }));
+    app.use(
+      "/media",
+      express.static(uploadDir, { immutable: true, maxAge: "1y" }),
+    );
   }
   app.get("/api/health", async (_req, res) => {
     await db.$queryRaw`SELECT 1`;
     res.json({ ok: true });
   });
-  app.get("/api/products", async (_req, res) => res.json(await readProducts(db)));
+  app.get("/api/products", async (_req, res) =>
+    res.json(await readProducts(db)),
+  );
   const customer = customerAuth(db, config);
   app.use("/api/customer", customer.router);
-  app.use("/api/customer", customer.required, cartRoutes(db));
-  app.use("/api", reviewRoutes(db, { ...config, uploadDir }, customer.required));
+  app.use("/api/customer", customer.required, cartRoutes(db, online));
+  app.use("/api/customer", customer.required, customerOrderRoutes(db, online));
+  app.use(
+    "/api",
+    reviewRoutes(db, { ...config, uploadDir }, customer.required),
+  );
   app.post("/api/bag/quote", async (req, res) => {
     const items = cartSchema.safeParse(req.body);
     if (!items.success) {
       res.status(400).json({ error: "Invalid bag." });
       return;
     }
-    res.json(await quoteCart(db, items.data));
+    res.json({
+      ...(await quoteCart(db, items.data)),
+      charges: (await paymentOptions(db, online)).charges,
+    });
   });
   app.get("/api/products/:slug", async (req, res) => {
     const product = await readProduct(db, String(req.params.slug));
@@ -61,16 +89,30 @@ export function createApp(db: Database, config: ServerConfig) {
   });
   app.post("/api/auth/login", auth.login);
   app.post("/api/auth/logout", auth.logout);
-  app.get("/api/auth/me", auth.required, (_req, res) => res.json(res.locals.actor));
+  app.get("/api/auth/me", auth.required, (_req, res) =>
+    res.json(res.locals.actor),
+  );
   app.use("/api/admin", auth.required);
   app.use("/api", publicStoreRoutes(db));
   app.use("/api/admin", (req, res, next) => {
     const role = res.locals.actor.role;
+    // Everyone on the team can look up orders and leave notes; inventory also
+    // moves orders through packing and shipping. Payments stay admin-only.
+    const orders =
+      (req.method === "GET" && /^\/orders(\/[^/]+)?$/.test(req.path)) ||
+      (req.method === "POST" && /^\/orders\/[^/]+\/notes$/.test(req.path));
     const inventory =
       role === "inventory" &&
-      ((req.method === "GET" && ["/products", "/categories"].includes(req.path)) ||
-        (req.method === "PATCH" && /^\/inventory\/[^/]+$/.test(req.path)));
-    if (role === "admin" || inventory || (role === "support" && req.path.startsWith("/support")))
+      ((req.method === "GET" &&
+        ["/products", "/categories"].includes(req.path)) ||
+        (req.method === "PATCH" &&
+          /^\/(inventory|orders)\/[^/]+$/.test(req.path)));
+    if (
+      role === "admin" ||
+      orders ||
+      inventory ||
+      (role === "support" && req.path.startsWith("/support"))
+    )
       return next();
     res.status(403).json({ error: "Your role does not allow this action." });
   });
@@ -80,13 +122,18 @@ export function createApp(db: Database, config: ServerConfig) {
     teamRoutes(db, config.email),
     supportRoutes(db),
     salesRoutes(db),
+    adminOrderRoutes(db),
   );
-  app.get("/api/admin/products", async (_req, res) => res.json(await readProducts(db, true)));
+  app.get("/api/admin/products", async (_req, res) =>
+    res.json(await readProducts(db, true)),
+  );
   async function save(req: Request, res: Response) {
     const parsed = productSchema.safeParse(req.body);
     if (!parsed.success) {
       res.status(400).json({
-        error: parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; "),
+        error: parsed.error.issues
+          .map((i) => `${i.path.join(".")}: ${i.message}`)
+          .join("; "),
       });
       return;
     }
@@ -102,7 +149,8 @@ export function createApp(db: Database, config: ServerConfig) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === "P2002") {
           res.status(409).json({
-            error: "This URL slug or Top 10 position is already used. Choose another value.",
+            error:
+              "This URL slug or Top 10 position is already used. Choose another value.",
           });
           return;
         }
@@ -140,31 +188,38 @@ export function createApp(db: Database, config: ServerConfig) {
     },
   );
   app.use((_req, res) => res.status(404).json({ error: "Not found." }));
-  app.use((err: Error & { status?: number }, _req: Request, res: Response, _next: NextFunction) => {
-    console.error(err.message);
-    if (
-      err instanceof Prisma.PrismaClientKnownRequestError &&
-      ["P2002", "P2025", "P2003"].includes(err.code)
-    ) {
-      const status = err.code === "P2025" ? 404 : 409;
-      res.status(status).json({
+  app.use(
+    (
+      err: Error & { status?: number },
+      _req: Request,
+      res: Response,
+      _next: NextFunction,
+    ) => {
+      console.error(err.message);
+      if (
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        ["P2002", "P2025", "P2003"].includes(err.code)
+      ) {
+        const status = err.code === "P2025" ? 404 : 409;
+        res.status(status).json({
+          error:
+            err.code === "P2002"
+              ? "That email, slug, order reference or Top 10 position is already used."
+              : err.code === "P2025"
+                ? "Record not found."
+                : "This record is linked to another record. Check the selected category.",
+        });
+        return;
+      }
+      res.status(err.status || 500).json({
         error:
-          err.code === "P2002"
-            ? "That email, slug, order reference or Top 10 position is already used."
-            : err.code === "P2025"
-              ? "Record not found."
-              : "This record is linked to another record. Check the selected category.",
+          err.status === 413
+            ? "File or request is too large."
+            : err.status && err.status < 500
+              ? err.message
+              : "Unable to complete request.",
       });
-      return;
-    }
-    res.status(err.status || 500).json({
-      error:
-        err.status === 413
-          ? "File or request is too large."
-          : err.status && err.status < 500
-            ? err.message
-            : "Unable to complete request.",
-    });
-  });
+    },
+  );
   return app;
 }

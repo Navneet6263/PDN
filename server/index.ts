@@ -1,17 +1,24 @@
 import "dotenv/config";
 import { openDatabase } from "./db";
 import { createApp } from "./app";
+import { onlineProviderFromEnv } from "./payments";
+import { expireStaleOrders } from "./orders";
 const hash = process.env.ADMIN_PASSWORD_HASH || "";
-const imageStorage = process.env.IMAGE_STORAGE === "local" ? "local" : "cloudinary";
+const imageStorage =
+  process.env.IMAGE_STORAGE === "local" ? "local" : "cloudinary";
 if (!/^[a-f0-9]{32}:[a-f0-9]{128}$/.test(hash))
   throw new Error("Run npm run setup first to configure admin access.");
 if (
   imageStorage === "cloudinary" &&
-  !["CLOUDINARY_CLOUD_NAME", "CLOUDINARY_API_KEY", "CLOUDINARY_API_SECRET"].every(
-    (key) => process.env[key],
-  )
+  ![
+    "CLOUDINARY_CLOUD_NAME",
+    "CLOUDINARY_API_KEY",
+    "CLOUDINARY_API_SECRET",
+  ].every((key) => process.env[key])
 ) {
-  throw new Error("Set the three Cloudinary credentials in .env before using Cloudinary uploads.");
+  throw new Error(
+    "Set the three Cloudinary credentials in .env before using Cloudinary uploads.",
+  );
 }
 const db = openDatabase();
 try {
@@ -30,7 +37,13 @@ const app = createApp(db, {
   origin: new URL(process.env.SITE_URL || "http://localhost:3000").origin,
   secure: process.env.COOKIE_SECURE === "true",
   imageStorage,
+  onlinePayment: onlineProviderFromEnv(),
 });
+// Release stock held by unpaid online orders.
+const sweeper = setInterval(
+  () => void expireStaleOrders(db).catch((e) => console.error(e.message)),
+  5 * 60000,
+);
 const server = app.listen(
   Number(process.env.PORT || process.env.API_PORT || 4000),
   process.env.API_HOST || "127.0.0.1",
@@ -39,6 +52,7 @@ const server = app.listen(
 for (const signal of ["SIGINT", "SIGTERM"])
   process.on(signal, () =>
     server.close(async () => {
+      clearInterval(sweeper);
       await db.$disconnect();
       process.exit(0);
     }),

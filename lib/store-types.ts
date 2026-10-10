@@ -77,6 +77,11 @@ export const defaultSettings = {
   exchangePolicy: "",
   shippingInfo: "",
   warrantyInfo: "",
+  shippingFee: 79,
+  freeShippingAbove: 999,
+  codEnabled: true,
+  codFee: 0,
+  codMaxOrder: 10000,
 };
 export type StoreSettings = typeof defaultSettings;
 export type Storefront = {

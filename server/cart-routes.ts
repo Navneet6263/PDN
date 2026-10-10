@@ -1,8 +1,18 @@
 import { Router } from "express";
-import { cartSchema, mergeCart, addressSchema, type CartItem } from "../lib/shopping";
+import {
+  cartSchema,
+  mergeCart,
+  addressSchema,
+  type CartItem,
+} from "../lib/shopping";
 import { z } from "zod";
 import type { Database } from "./db";
-export async function quoteCart(db: Database, items: CartItem[]) {
+import type { PaymentProvider } from "./payments";
+import { paymentOptions } from "./order-routes";
+export async function quoteCart(
+  db: Pick<Database, "product">,
+  items: CartItem[],
+) {
   const products = await db.product.findMany({
     where: {
       id: { in: items.map((i) => i.productId) },
@@ -36,13 +46,22 @@ export async function quoteCart(db: Database, items: CartItem[]) {
   });
   return {
     lines,
-    subtotal: lines.reduce((sum, i) => sum + Math.round(i.price * 100) * i.quantity, 0) / 100,
+    subtotal:
+      lines.reduce(
+        (sum, i) => sum + Math.round(i.price * 100) * i.quantity,
+        0,
+      ) / 100,
     valid: lines.length > 0 && lines.every((i) => !i.error),
   };
 }
-export function cartRoutes(db: Database) {
+export function cartRoutes(
+  db: Database,
+  online: PaymentProvider | null = null,
+) {
   const router = Router();
-  router.get("/cart", async (_req, res) => res.json(cartSchema.parse(res.locals.customer.cart)));
+  router.get("/cart", async (_req, res) =>
+    res.json(cartSchema.parse(res.locals.customer.cart)),
+  );
   router.put("/cart", async (req, res) => {
     const parsed = cartSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -50,11 +69,16 @@ export function cartRoutes(db: Database) {
       return;
     }
     const items = mergeCart([], parsed.data);
-    await db.customer.update({ where: { id: res.locals.customer.id }, data: { cart: items } });
+    await db.customer.update({
+      where: { id: res.locals.customer.id },
+      data: { cart: items },
+    });
     res.json(items);
   });
   router.post("/cart/merge", async (req, res) => {
-    const parsed = z.object({ token: z.string().uuid(), items: cartSchema }).safeParse(req.body);
+    const parsed = z
+      .object({ token: z.string().uuid(), items: cartSchema })
+      .safeParse(req.body);
     if (!parsed.success) {
       res.status(400).json({ error: "Invalid guest bag." });
       return;
@@ -79,23 +103,29 @@ export function cartRoutes(db: Database) {
     res.json({
       address: res.locals.customer.checkout,
       ...(await quoteCart(db, cartSchema.parse(res.locals.customer.cart))),
+      options: await paymentOptions(db, online),
     }),
   );
   router.post("/checkout", async (req, res) => {
     const address = addressSchema.safeParse(req.body);
     if (!address.success) {
-      res
-        .status(400)
-        .json({
-          error: "Complete your address, 10-digit Indian mobile number and 6-digit PIN code.",
-        });
+      res.status(400).json({
+        error:
+          "Complete your address, 10-digit Indian mobile number and 6-digit PIN code.",
+      });
       return;
     }
-    const quote = await quoteCart(db, cartSchema.parse(res.locals.customer.cart));
+    const quote = await quoteCart(
+      db,
+      cartSchema.parse(res.locals.customer.cart),
+    );
     if (!quote.valid) {
       res
         .status(409)
-        .json({ error: "Your bag changed. Check availability and sizes before continuing." });
+        .json({
+          error:
+            "Your bag changed. Check availability and sizes before continuing.",
+        });
       return;
     }
     await db.customer.update({
@@ -105,7 +135,8 @@ export function cartRoutes(db: Database) {
     res.json({
       ...quote,
       address: address.data,
-      message: "Address saved. Payment and order placement are not enabled yet.",
+      options: await paymentOptions(db, online),
+      message: "Address saved. Choose how you would like to pay.",
     });
   });
   return router;
