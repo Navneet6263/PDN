@@ -7,10 +7,10 @@ import StoreHero from "@/components/StoreHero";
 import Catalog from "@/components/Catalog";
 import ProductCard from "@/components/ProductCard";
 import StyleStudio from "@/components/style/StyleStudio";
+import TrustBar from "@/components/TrustBar";
 import {
   CategoryShop,
   DepartmentStrip,
-  DepartmentEdits,
   SectionHeading,
 } from "@/components/HomeCollections";
 import { getProducts, getStorefront } from "@/lib/api";
@@ -41,10 +41,14 @@ export default async function Home() {
       <main>
         <DepartmentStrip store={store} />
         <StoreHero store={store} />
+        <TrustBar settings={s} />
         <StyleStudio products={products} />
         <CategoryShop store={store} products={products} />
         {s.showTopTen && top.length > 0 && (
-          <section id="top-ten" className="scroll-mt-40 bg-[#fff8fa] py-10 md:py-12">
+          <section
+            id="top-ten"
+            className="scroll-mt-40 bg-[#fff8fa] py-10 md:py-12"
+          >
             <div className="shell">
               <SectionHeading
                 title={s.topTenTitle}
@@ -81,11 +85,18 @@ export default async function Home() {
                     <h2 className="mt-3 text-2xl font-extrabold tracking-tight text-[#49332f]">
                       {b.title}
                     </h2>
-                    <p className="mt-3 text-xs leading-5 text-[#856b66]">{b.subtitle}</p>
-                    <span className="mt-5 text-xs font-bold text-[#af375a]">{b.buttonLabel} →</span>
+                    <p className="mt-3 text-xs leading-5 text-[#856b66]">
+                      {b.subtitle}
+                    </p>
+                    <span className="mt-5 text-xs font-bold text-[#af375a]">
+                      {b.buttonLabel} →
+                    </span>
                   </div>
                   <picture className="relative">
-                    <source media="(max-width:640px)" srcSet={b.mobileImage || b.image} />
+                    <source
+                      media="(max-width:640px)"
+                      srcSet={b.mobileImage || b.image}
+                    />
                     <img
                       src={b.image}
                       alt={b.title}
@@ -97,14 +108,17 @@ export default async function Home() {
               ))}
           </section>
         )}
-        <DepartmentEdits store={store} products={products} />
         <Suspense fallback={<p className="shell py-20">Loading collection…</p>}>
           <Catalog store={store} products={products} />
         </Suspense>
         {s.showStory && (
           <section className="border-t bg-[#fff6f1] px-6 py-12 text-center">
-            <h2 className="text-2xl font-bold tracking-tight">{s.storyTitle}</h2>
-            <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[#85818a]">{s.storyText}</p>
+            <h2 className="text-2xl font-bold tracking-tight">
+              {s.storyTitle}
+            </h2>
+            <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[#85818a]">
+              {s.storyText}
+            </p>
           </section>
         )}
       </main>

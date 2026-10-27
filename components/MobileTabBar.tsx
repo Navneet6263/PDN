@@ -63,7 +63,7 @@ export default function MobileTabBar({
         {customer ? "Orders" : "Login"}
       </Link>
       <Link href="/cart" className={`${tab} relative ${on(path === "/cart")}`}>
-        <ShoppingBag size={20} />
+        <ShoppingBag size={20} data-bag-target />
         {count > 0 && (
           <span className="absolute left-1/2 top-1 ml-1.5 min-w-[18px] rounded-full bg-[#ff3f6c] px-1 text-center text-[10px] leading-[18px] text-white">
             {count}

@@ -16,7 +16,7 @@ Review uploads accept JPEG, PNG or WebP up to 5 MB and pass through the existing
 
 The style quiz opens only when the visitor clicks the compact style banner or My style. The saved plan is shown in a closable dialog. Existing admin occasion controls still determine matching.
 
-Three preview hero banners were added without overwriting existing banners. Edit title, images, CTA, position, dates and visibility in Admin → Banners. Multiple active hero banners rotate every five seconds. Pause/play and manual navigation are available; hover, focus, reduced motion and background tabs stop automatic advancement. `scripts/load-shopping-banners.ts` creates these banners only when explicitly run and backs up existing banner data first.
+`scripts/load-women-store.ts` adds three hero banners (festive, workwear collection, bridal) and two promotions. Edit title, images, CTA, position, dates and visibility in Admin → Banners. Multiple active hero banners rotate every five seconds. Pause/play and manual navigation are available; hover, focus, reduced motion and background tabs stop automatic advancement.
 
 Both header suggestions and catalog filtering normalise common spelling variants: sari/saree, pent/paint/pants/trousers, kurtha/kurta and more. Suggestions come from published products and obey existing search priorities. This is a fashion alias dictionary, not a general spellchecker. Package contents are searchable too.
 

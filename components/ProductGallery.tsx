@@ -2,7 +2,13 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { ZoomIn, X, ChevronLeft, ChevronRight } from "lucide-react";
-export default function ProductGallery({ images, name }: { images: string[]; name: string }) {
+export default function ProductGallery({
+  images,
+  name,
+}: {
+  images: string[];
+  name: string;
+}) {
   const [index, setIndex] = useState(0),
     [zoom, setZoom] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
@@ -20,12 +26,14 @@ export default function ProductGallery({ images, name }: { images: string[]; nam
       previous?.focus();
     };
   }, [zoom]);
-  const move = (delta: number) => setIndex((n) => (n + delta + images.length) % images.length);
+  const move = (delta: number) =>
+    setIndex((n) => (n + delta + images.length) % images.length);
   return (
     <div className="min-w-0 lg:sticky lg:top-36">
       <button
         onClick={() => setZoom(true)}
         aria-label="Enlarge product image"
+        data-product-image
         className="group relative block aspect-[3/4] max-h-[760px] w-full overflow-hidden rounded-2xl bg-[#f6f5f3]"
       >
         <Image

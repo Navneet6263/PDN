@@ -2,7 +2,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Sparkles, ArrowUpRight, X } from "lucide-react";
 import type { Product } from "@/lib/types";
-import { profileKey, parseProfile, type StyleProfile } from "@/lib/style-planner";
+import {
+  profileKey,
+  parseProfile,
+  type StyleProfile,
+} from "@/lib/style-planner";
 import StyleQuiz from "./StyleQuiz";
 import StyleResults from "./StyleResults";
 export default function StyleStudio({ products }: { products: Product[] }) {
@@ -81,15 +85,24 @@ export default function StyleStudio({ products }: { products: Product[] }) {
             What is your kind of style?
           </span>
           <span className="mt-2 block text-xs text-pink-100">
-            Office, campus or weekend? Tell us your mood. Discover your next look.
+            Office, campus or weekend? Tell us your mood. Discover your next
+            look.
           </span>
         </span>
         <span className="flex shrink-0 items-center gap-2 rounded-full bg-white px-4 py-3 text-xs font-bold text-[#883957]">
-          <span className="hidden sm:inline">{profile ? "View my picks" : "Find my style"}</span>
+          <span className="hidden sm:inline">
+            {profile ? "View my picks" : "Find my style"}
+          </span>
           <ArrowUpRight size={21} />
         </span>
       </button>
-      {quiz && <StyleQuiz initial={profile} onSave={save} onClose={() => setQuiz(false)} />}
+      {quiz && (
+        <StyleQuiz
+          initial={profile}
+          onSave={save}
+          onClose={() => setQuiz(false)}
+        />
+      )}
       {results && profile && (
         <dialog
           ref={dialog}
@@ -115,13 +128,18 @@ export default function StyleStudio({ products }: { products: Product[] }) {
                   try {
                     localStorage.removeItem(profileKey);
                   } catch {}
-                  window.dispatchEvent(new CustomEvent("terra-style-updated", { detail: null }));
+                  window.dispatchEvent(
+                    new CustomEvent("terra-style-updated", { detail: null }),
+                  );
                 }}
                 className="text-xs underline"
               >
                 Clear preferences
               </button>
-              <button onClick={() => setResults(false)} aria-label="Close style picks">
+              <button
+                onClick={() => setResults(false)}
+                aria-label="Close style picks"
+              >
                 <X size={22} />
               </button>
             </div>

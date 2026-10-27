@@ -2,7 +2,6 @@ import type { Product } from "./types";
 export const moods = ["office", "college", "everyday", "festive"] as const;
 export type Mood = (typeof moods)[number];
 export type StyleProfile = {
-  audience: "women" | "men" | "kids";
   mood: Mood;
   style: "ethnic" | "minimal" | "bold";
   budget: number;
@@ -11,7 +10,6 @@ export type StyleProfile = {
 export const profileKey = "terra-style-profile-v1";
 export const skipKey = "terra-style-skip-v1";
 export const initialProfile: StyleProfile = {
-  audience: "women",
   mood: "office",
   style: "ethnic",
   budget: 2500,
@@ -26,17 +24,16 @@ export const moodLabels: Record<Mood, string> = {
 export function parseProfile(raw: string | null): StyleProfile | null {
   try {
     const p = JSON.parse(raw || "null");
+    // Profiles saved before the store became women-only also carry an
+    // "audience" field; it is ignored.
     if (
       p &&
-      ["women", "men", "kids"].includes(p.audience) &&
       moods.includes(p.mood) &&
       ["ethnic", "minimal", "bold"].includes(p.style) &&
       [1000, 2500, 5000, 10000000].includes(p.budget) &&
-      typeof p.saturday === "boolean" &&
-      !(p.audience === "kids" && ["office", "college"].includes(p.mood))
+      typeof p.saturday === "boolean"
     )
       return {
-        audience: p.audience,
         mood: p.mood,
         style: p.style,
         budget: p.budget,
@@ -45,22 +42,22 @@ export function parseProfile(raw: string | null): StyleProfile | null {
   } catch {}
   return null;
 }
-const casual = /kurti|kurtis|t-shirt|jeans|shirt|trouser|top|dress|co-ord|cotton|straight/;
-const ethnic = /saree|kurta|kurti|lehenga|anarkali|ethnic|sherwani|nehru/;
-const occasion = /lehenga|sherwani|anarkali|wedding|bridal|zari|celebration|festive/;
-export function styleMatches(products: Product[], profile: StyleProfile): Product[] {
+const casual =
+  /kurti|kurtis|t-shirt|jeans|shirt|trouser|top|dress|co-ord|cotton|straight/;
+const ethnic = /saree|kurta|kurti|lehenga|anarkali|ethnic|jhumka|potli/;
+const occasion = /lehenga|anarkali|wedding|bridal|zari|celebration|festive/;
+export function styleMatches(
+  products: Product[],
+  profile: StyleProfile,
+): Product[] {
   return products
     .filter((p) => {
-      if (
-        !p.published ||
-        p.stock <= 0 ||
-        p.category !== profile.audience ||
-        p.price > profile.budget
-      )
+      if (!p.published || p.stock <= 0 || p.price > profile.budget)
         return false;
       const words = `${p.name} ${p.subCategory}`.toLowerCase();
       const tags = p.searchKeywords.map((k) => k.toLowerCase().trim());
-      if (tags.some((tag) => tag.startsWith("mood:"))) return tags.includes(`mood:${profile.mood}`);
+      if (tags.some((tag) => tag.startsWith("mood:")))
+        return tags.includes(`mood:${profile.mood}`);
       if (profile.mood === "festive") return ethnic.test(words);
       return casual.test(words) && !occasion.test(words);
     })
@@ -74,12 +71,17 @@ export function styleMatches(products: Product[], profile: StyleProfile): Produc
             : profile.style === "minimal" &&
                 /plain|solid|essential|classic|straight|cotton/.test(text)
               ? 10
-              : profile.style === "bold" && /print|floral|embroidered|colour/.test(text)
+              : profile.style === "bold" &&
+                  /print|floral|embroidered|colour/.test(text)
                 ? 10
                 : 0)
         );
       };
-      return score(b) - score(a) || a.displayOrder - b.displayOrder || a.id.localeCompare(b.id);
+      return (
+        score(b) - score(a) ||
+        a.displayOrder - b.displayOrder ||
+        a.id.localeCompare(b.id)
+      );
     });
 }
 export const officeDays = [
@@ -121,10 +123,22 @@ export function plannerDays(profile: StyleProfile) {
         day: `Look ${i + 1}`,
         title:
           profile.mood === "college"
-            ? ["First lecture, fresh look", "Canteen catch-up", "After-class plans"][i]
+            ? [
+                "First lecture, fresh look",
+                "Canteen catch-up",
+                "After-class plans",
+              ][i]
             : profile.mood === "festive"
-              ? ["The family get-together", "A little extra sparkle", "Photo-ready moments"][i]
-              : ["Coffee-run comfort", "Errands, but stylish", "Slow-day favourites"][i],
+              ? [
+                  "The family get-together",
+                  "A little extra sparkle",
+                  "Photo-ready moments",
+                ][i]
+              : [
+                  "Coffee-run comfort",
+                  "Errands, but stylish",
+                  "Slow-day favourites",
+                ][i],
         note:
           profile.mood === "college"
             ? "Attendance may be a question. Your outfit will make an appearance."
@@ -134,7 +148,11 @@ export function plannerDays(profile: StyleProfile) {
       }));
 }
 
-export function planProducts(products: Product[], profile: StyleProfile, rotation = 0) {
+export function planProducts(
+  products: Product[],
+  profile: StyleProfile,
+  rotation = 0,
+) {
   const pool = styleMatches(products, profile);
   if (!pool.length) return [];
   const days = plannerDays(profile);
@@ -145,6 +163,8 @@ export function planProducts(products: Product[], profile: StyleProfile, rotatio
   const other = pool.filter((p) => p.id !== saturday.id);
   const weekdays = other.length ? other : pool;
   return days.map((day, i) =>
-    day.day === "Saturday" ? saturday : weekdays[(i + rotation) % weekdays.length],
+    day.day === "Saturday"
+      ? saturday
+      : weekdays[(i + rotation) % weekdays.length],
   );
 }

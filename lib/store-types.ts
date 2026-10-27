@@ -58,7 +58,7 @@ export const defaultSettings = {
   heroTitle: "A little tradition. A little you.",
   heroSubtitle: "Discover pieces that tell your story.",
   heroEyebrow: "The new season edit",
-  heroImage: "/images/hero-bg.jpg",
+  heroImage: "/images/women/emerald-embroidered-anarkali-set.webp",
   heroButtonLabel: "Explore the collection",
   heroLink: "/#catalog",
   catalogTitle: "Find your kind of beautiful.",

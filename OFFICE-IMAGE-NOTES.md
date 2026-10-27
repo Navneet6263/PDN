@@ -1,8 +1,8 @@
 # Office styling image assets
 
-Built-in image generation was used for six distinct sample office product photos. These are illustrative catalog images, not verified merchandise photographs. Three earlier sample listings are refreshed and three additional office samples are added; existing rows are backed up by `scripts/load-office-looks.ts`.
+Built-in image generation was used for six distinct office product photos. These are illustrative catalog images, not verified merchandise photographs.
 
-Original PNGs are retained. The loader creates 800px WebP copies alongside them for lighter storefront delivery. Products use the `.webp` copies; prompts and source PNGs below remain unchanged.
+They now live as the Workwear launch products in `public/images/women/` (Monday → powder-blue-chikan-kurta-set, Tuesday → sage-straight-kurta-set, Wednesday → rose-block-print-kurta-set, Thursday → ivory-shirt-and-trouser-set, Friday → navy-geometric-kurta-set, Saturday → teal-asymmetric-tunic-set). The original 1024×1536 PNGs named below were cropped to WebP and removed from the repository; the prompts are kept for reference.
 
 ## office-monday
 

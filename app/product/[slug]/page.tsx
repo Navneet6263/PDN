@@ -33,7 +33,9 @@ export default async function ProductPage({ params }: Props) {
   const { slug } = await params;
   const p = await getProduct(slug);
   if (!p) notFound();
-  const { settings } = await getStorefront();
+  const { settings, categories } = await getStorefront();
+  const department =
+    categories.find((c) => c.slug === p.category)?.label || p.category;
   const related = (await getProducts())
     .filter((item) => item.category === p.category && item.id !== p.id)
     .slice(0, 4);
@@ -64,12 +66,13 @@ export default async function ProductPage({ params }: Props) {
             __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
           }}
         />
-        <nav aria-label="Breadcrumb" className="mb-8 flex flex-wrap gap-2 text-xs text-muted">
+        <nav
+          aria-label="Breadcrumb"
+          className="mb-8 flex flex-wrap gap-2 text-xs text-muted"
+        >
           <Link href="/">Home</Link>
           <span>/</span>
-          <Link className="capitalize" href={`/?category=${p.category}#catalog`}>
-            {p.category}
-          </Link>
+          <Link href={`/?category=${p.category}#catalog`}>{department}</Link>
           <span>/</span>
           <span className="text-ink">{p.name}</span>
         </nav>
@@ -86,7 +89,9 @@ export default async function ProductPage({ params }: Props) {
               {p.name}
             </h1>
             <div className="mt-5 flex items-center gap-3">
-              <span className="text-2xl font-bold tracking-tight">{money(p.price)}</span>
+              <span className="text-2xl font-bold tracking-tight">
+                {money(p.price)}
+              </span>
               {p.originalPrice > p.price && (
                 <s className="text-sm text-muted">{money(p.originalPrice)}</s>
               )}
@@ -94,7 +99,9 @@ export default async function ProductPage({ params }: Props) {
             <p
               className={`mt-4 flex items-center gap-2 text-xs ${p.stock ? "text-olive" : "text-red-700"}`}
             >
-              <span className={`h-1.5 w-1.5 rounded-full ${p.stock ? "bg-olive" : "bg-red-700"}`} />
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${p.stock ? "bg-olive" : "bg-red-700"}`}
+              />
               {p.stock === 0
                 ? "Currently out of stock"
                 : p.stock <= 5
@@ -115,18 +122,26 @@ export default async function ProductPage({ params }: Props) {
               </h2>
               <ul className="mt-5 space-y-3">
                 {p.packageContents.map((item, i) => (
-                  <li key={i} className="flex items-start justify-between gap-4 text-sm">
+                  <li
+                    key={i}
+                    className="flex items-start justify-between gap-4 text-sm"
+                  >
                     <span className="flex items-start gap-3">
-                      <Check size={15} className="mt-0.5 shrink-0 text-[#798294]" />
+                      <Check
+                        size={15}
+                        className="mt-0.5 shrink-0 text-[#798294]"
+                      />
                       {item.name}
                     </span>
-                    <span className="shrink-0 text-muted">× {item.quantity}</span>
+                    <span className="shrink-0 text-muted">
+                      × {item.quantity}
+                    </span>
                   </li>
                 ))}
               </ul>
               <p className="mt-5 border-t pt-4 text-[11px] leading-5 text-muted">
-                Package includes only the items listed above. Styling props shown in photos are not
-                included unless listed.
+                Package includes only the items listed above. Styling props
+                shown in photos are not included unless listed.
               </p>
             </section>
             <div className="mt-7 divide-y border-y">
@@ -134,9 +149,18 @@ export default async function ProductPage({ params }: Props) {
                 ["Material & fabric", p.material],
                 ["Care instructions", p.care],
                 ["Exchange rules", p.exchangePolicy || settings.exchangePolicy],
-                ["Return & refund rules", p.returnPolicy || settings.returnPolicy],
-                ["Shipping & delivery information", p.shippingInfo || settings.shippingInfo],
-                ["Warranty / guarantee", p.warrantyInfo || settings.warrantyInfo],
+                [
+                  "Return & refund rules",
+                  p.returnPolicy || settings.returnPolicy,
+                ],
+                [
+                  "Shipping & delivery information",
+                  p.shippingInfo || settings.shippingInfo,
+                ],
+                [
+                  "Warranty / guarantee",
+                  p.warrantyInfo || settings.warrantyInfo,
+                ],
                 ["Additional product information", p.additionalInfo],
               ]
                 .filter(([, v]) => v)
@@ -149,7 +173,9 @@ export default async function ProductPage({ params }: Props) {
                     <summary className="cursor-pointer text-sm font-medium text-[#515968]">
                       {title}
                     </summary>
-                    <p className="mt-3 whitespace-pre-line text-sm leading-6 text-muted">{value}</p>
+                    <p className="mt-3 whitespace-pre-line text-sm leading-6 text-muted">
+                      {value}
+                    </p>
                   </details>
                 ))}
             </div>
@@ -164,7 +190,9 @@ export default async function ProductPage({ params }: Props) {
             <p className="text-[11px] font-semibold uppercase tracking-[.14em] text-[#7b8190]">
               A few more favourites
             </p>
-            <h2 className="mb-8 mt-3 text-2xl font-bold tracking-tight">You might also love</h2>
+            <h2 className="mb-8 mt-3 text-2xl font-bold tracking-tight">
+              You might also love
+            </h2>
             <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">
               {related.map((item) => (
                 <ProductCard key={item.id} product={item} />

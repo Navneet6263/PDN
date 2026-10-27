@@ -14,11 +14,15 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_IN",
     siteName: "Terra Studios",
-    images: ["/images/hero-bg.jpg"],
+    images: ["/images/women/emerald-embroidered-anarkali-set.webp"],
   },
   twitter: { card: "summary_large_image" },
 };
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
       <body>

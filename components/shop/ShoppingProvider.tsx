@@ -1,6 +1,13 @@
 "use client";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
-import { cartSchema, mergeCart, request, type CartItem, type Customer } from "@/lib/shopping";
+import {
+  cartSchema,
+  mergeCart,
+  request,
+  type CartItem,
+  type Customer,
+} from "@/lib/shopping";
+import BagFlight, { BAG_ADDED, type BagAdded } from "./BagFlight";
 const storageKey = "terra-guest-bag-v1";
 type Guest = { token: string; items: CartItem[] };
 type State = {
@@ -10,7 +17,8 @@ type State = {
   busy: boolean;
   error: string;
   change: (items: CartItem[]) => Promise<void>;
-  add: (item: CartItem) => Promise<void>;
+  // `shown` describes the product for the add-to-bag animation and toast.
+  add: (item: CartItem, shown?: BagAdded) => Promise<void>;
   refresh: () => Promise<void>;
   logout: () => Promise<void>;
 };
@@ -24,7 +32,11 @@ function readGuest(): Guest {
   }
   return { token: crypto.randomUUID(), items: [] };
 }
-export default function ShoppingProvider({ children }: { children: React.ReactNode }) {
+export default function ShoppingProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [items, setItems] = useState<CartItem[]>([]),
     [customer, setCustomer] = useState<Customer | null>(null);
   const [ready, setReady] = useState(false),
@@ -58,12 +70,14 @@ export default function ShoppingProvider({ children }: { children: React.ReactNo
     void refresh();
   }, []);
   async function change(next: CartItem[]) {
-    if (lock.current || !ready) throw new Error("Please wait for your bag to finish loading.");
+    if (lock.current || !ready)
+      throw new Error("Please wait for your bag to finish loading.");
     lock.current = true;
     setBusy(true);
     try {
       const validated = cartSchema.parse(next);
-      if (customer) setItems(await request<CartItem[]>("/customer/cart", validated, "PUT"));
+      if (customer)
+        setItems(await request<CartItem[]>("/customer/cart", validated, "PUT"));
       else {
         localStorage.setItem(
           storageKey,
@@ -95,12 +109,17 @@ export default function ShoppingProvider({ children }: { children: React.ReactNo
         busy,
         error,
         change,
-        add: (i) => change(mergeCart(items, [i])),
+        add: async (i, shown) => {
+          await change(mergeCart(items, [i]));
+          if (shown)
+            window.dispatchEvent(new CustomEvent(BAG_ADDED, { detail: shown }));
+        },
         refresh,
         logout,
       }}
     >
       {children}
+      <BagFlight />
     </Context.Provider>
   );
 }

@@ -2,7 +2,6 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import type { Product } from "@/lib/types";
 import type { Storefront } from "@/lib/store-types";
-import ProductCard from "./ProductCard";
 export function SectionHeading({
   title,
   subtitle,
@@ -34,9 +33,20 @@ export function SectionHeading({
     </div>
   );
 }
-export function CategoryShop({ store, products }: { store: Storefront; products: Product[] }) {
+export function CategoryShop({
+  store,
+  products,
+}: {
+  store: Storefront;
+  products: Product[];
+}) {
   const types = Array.from(
-    { length: Math.max(0, ...store.categories.map((c) => c.subCategories.length)) },
+    {
+      length: Math.max(
+        0,
+        ...store.categories.map((c) => c.subCategories.length),
+      ),
+    },
     (_, index) =>
       store.categories.flatMap((c) => {
         const type = c.subCategories[index];
@@ -45,7 +55,9 @@ export function CategoryShop({ store, products }: { store: Storefront; products:
               {
                 category: c,
                 type,
-                products: products.filter((p) => p.category === c.slug && p.subCategory === type),
+                products: products.filter(
+                  (p) => p.category === c.slug && p.subCategory === type,
+                ),
               },
             ]
           : [];
@@ -56,7 +68,10 @@ export function CategoryShop({ store, products }: { store: Storefront; products:
     .slice(0, 12);
   return (
     <section className="shell py-9 md:py-12">
-      <SectionHeading title="Shop by category" subtitle="Find your next favourite" />
+      <SectionHeading
+        title="Shop by category"
+        subtitle="Find your next favourite"
+      />
       <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
         {types.map(({ category, type, products: items }) => (
           <Link
@@ -73,9 +88,12 @@ export function CategoryShop({ store, products }: { store: Storefront; products:
               />
             </div>
             <div className="p-3 text-center">
-              <h3 className="text-xs font-bold text-[#51352f] sm:text-sm">{type}</h3>
+              <h3 className="text-xs font-bold text-[#51352f] sm:text-sm">
+                {type}
+              </h3>
               <p className="mt-1 text-[10px] text-[#a06752] sm:text-xs">
-                From ₹{Math.min(...items.map((p) => p.price)).toLocaleString("en-IN")}
+                From ₹
+                {Math.min(...items.map((p) => p.price)).toLocaleString("en-IN")}
               </p>
             </div>
           </Link>
@@ -107,35 +125,5 @@ export function DepartmentStrip({ store }: { store: Storefront }) {
         </Link>
       ))}
     </nav>
-  );
-}
-export function DepartmentEdits({ store, products }: { store: Storefront; products: Product[] }) {
-  return (
-    <>
-      {store.categories
-        .filter((c) => ["women", "men", "kids"].includes(c.slug))
-        .map((c) => {
-          const picks = products
-            .filter((p) => p.category === c.slug)
-            .sort((a, b) => a.displayOrder - b.displayOrder)
-            .slice(0, 5);
-          return (
-            picks.length > 0 && (
-              <section key={c.id} className="shell py-9 md:py-12">
-                <SectionHeading
-                  title={`${c.label}: the new-season edit`}
-                  subtitle="Fresh finds, all in one place"
-                  href={`/?category=${c.slug}#catalog`}
-                />
-                <div className="grid auto-cols-[44%] grid-flow-col gap-3 overflow-x-auto pb-3 sm:auto-cols-[29%] lg:auto-cols-fr">
-                  {picks.map((p) => (
-                    <ProductCard key={p.id} product={p} />
-                  ))}
-                </div>
-              </section>
-            )
-          );
-        })}
-    </>
   );
 }

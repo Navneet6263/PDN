@@ -1,7 +1,10 @@
 import Header from "@/components/Header";
 import Account from "@/components/shop/Account";
 import Footer from "@/components/Footer";
-export const metadata = { title: "My account", robots: { index: false, follow: false } };
+export const metadata = {
+  title: "My account",
+  robots: { index: false, follow: false },
+};
 export default function Page() {
   return (
     <div className="storefront min-h-screen">
@@ -10,7 +13,7 @@ export default function Page() {
         <div className="mx-auto grid max-w-4xl overflow-hidden rounded-2xl border border-[#e9ebef] md:grid-cols-2">
           <div className="relative hidden bg-[#f4eee8] md:block">
             <img
-              src="/images/sample/office-thursday.webp"
+              src="/images/women/ivory-shirt-and-trouser-set.webp"
               alt="An everyday look from our collection"
               className="h-full w-full object-cover object-top"
             />

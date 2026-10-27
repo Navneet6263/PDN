@@ -17,19 +17,21 @@ test("spelling suggestions, guest bag, login, saved checkout and mobile layouts"
     await expect(page.getByText("Showing matches for “pant”")).toBeVisible();
     await expect(page.locator("#search-suggestions li").first()).toBeVisible();
     await page.keyboard.press("Escape");
-    await page.goto("/product/sample-everyday-printed-kurti");
+    await page.goto("/product/powder-blue-chikan-kurta-set");
     await page.getByRole("button", { name: "Add to bag", exact: true }).click();
     await expect(
       page.getByText("Please select your size first."),
     ).toBeVisible();
     await page.getByRole("button", { name: "M", exact: true }).click();
     await page.getByRole("button", { name: "Add to bag", exact: true }).click();
-    await expect(page.getByText(/Added to your bag/)).toBeVisible();
+    await expect(
+      page.getByRole("status").filter({ hasText: "Added to bag" }),
+    ).toBeVisible();
     await page.goto("/cart");
     await expect(page.getByText("Size: M", { exact: false })).toBeVisible();
     await page.reload();
     await expect(
-      page.getByRole("heading", { name: "Powder Blue Office Kurta Set" }),
+      page.getByRole("heading", { name: "Powder Blue Chikankari Kurta Set" }),
     ).toBeVisible();
     await page.getByRole("link", { name: "Sign in to checkout" }).click();
     await page
@@ -77,9 +79,9 @@ test("spelling suggestions, guest bag, login, saved checkout and mobile layouts"
     await expect(page.getByText("Deliver to")).toBeVisible();
     await page.getByRole("link", { name: "Change" }).click();
     await page.getByRole("button", { name: "Edit" }).click();
-    await expect(page.getByLabel("House no., building, street, area")).toHaveValue(
-      "12 Testing Street",
-    );
+    await expect(
+      page.getByLabel("House no., building, street, area"),
+    ).toHaveValue("12 Testing Street");
     await mkdir("artifacts", { recursive: true });
     for (const width of [360, 390, 414]) {
       await page.setViewportSize({ width, height: 844 });
@@ -155,7 +157,7 @@ test("a signed-in customer can publish a review with a photo", async ({
       data: { name: "Review Test", email, password: "E2e-review-123!" },
     });
     expect(response.ok()).toBe(true);
-    await page.goto("/product/sample-everyday-printed-kurti");
+    await page.goto("/product/powder-blue-chikan-kurta-set");
     const reviews = page.locator("#reviews");
     await reviews.getByLabel("Rating", { exact: true }).selectOption("4");
     await reviews
@@ -163,7 +165,7 @@ test("a signed-in customer can publish a review with a photo", async ({
       .fill("Temporary browser test: a comfortable fit and lovely fabric.");
     await reviews
       .locator('input[type="file"]')
-      .setInputFiles("public/images/sample/office-monday.webp");
+      .setInputFiles("public/images/women/sage-straight-kurta-set.webp");
     await reviews.getByRole("button", { name: "Publish review" }).click();
     await expect(reviews.getByRole("status")).toContainText(
       "Your review is live",

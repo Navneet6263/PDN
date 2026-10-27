@@ -6,11 +6,11 @@ Customer storefront and admin panel rebuilt from the supplied Fashion Storefront
 - Backend: separate Node.js / Express API, written in TypeScript.
 - Database: PostgreSQL through Prisma ORM. No MongoDB or SQLite dependency.
 - Product photos: Cloudinary; uploads are resized and compressed to WebP before upload.
-- Scope: searchable storefront, product details, customer accounts, saved carts, photo reviews, delivery-address checkout, festival collections and admin controls for products, Top 10/search placement, scheduled banners, categories, stock, store settings, team permissions, support records, orders with cash on delivery or online payment, an order management panel and a sales dashboard.
+- Scope: a women's fashion store with searchable storefront, product details, customer accounts, saved carts, photo reviews, delivery-address checkout, festival collections and admin controls for products, Top 10/search placement, scheduled banners, categories, stock, store settings, team permissions, support records, orders with cash on delivery or online payment, an order management panel and a sales dashboard.
 
 See [ADMIN-GUIDE.md](ADMIN-GUIDE.md) for placement rules, banner scheduling, default policies and team permissions.
 
-The compact Style Studio banner opens an optional quiz and recommendations dialog; it never opens automatically. It recommends office, campus, everyday and festive looks from the actual catalog. Office plans cover Monday–Friday with an optional Saturday. Customers can save their preferences in this browser, skip/reopen the quiz, remix picks or clear preferences. Admin occasion/style controls are under Top 10 & Search. `scripts/load-office-looks.ts` refreshes three sample listings and adds three office samples using six generated photos; the local preview then has 33 products. Image prompts and saved sources are documented in [OFFICE-IMAGE-NOTES.md](OFFICE-IMAGE-NOTES.md).
+The compact Style Studio banner opens an optional quiz and recommendations dialog; it never opens automatically. It recommends office, campus, everyday and festive looks from the actual catalog. Office plans cover Monday–Friday with an optional Saturday. Customers can save their preferences in this browser, skip/reopen the quiz, remix picks or clear preferences. Admin occasion/style controls are under Top 10 & Search.
 
 ## Run locally
 
@@ -46,7 +46,7 @@ npm run dev
 
 Open `http://localhost:3000` and `http://localhost:3000/admin`. Default admin email: `admin@terra.local`; password: the value shown by setup. Email can be changed in `.env`.
 
-New installations start empty. `npm run seed` only checks the database connection. For the requested populated design preview, `npx tsx scripts/load-sample-store.ts` adds 30 editable sample products across seven departments, configures the homepage, and backs up existing store content under `data/backups`. It preserves existing products and does not overwrite an existing sample product when rerun. This command has already been run in the current local workspace. Sample photos and specifications are representative; replace them with verified merchandise details before selling. Test fixtures under `tests/fixtures` remain separate from this preview catalog.
+New installations start empty. `npm run seed` only checks the database connection. To set the store up as the women's fashion store with its launch catalog, run `npx tsx scripts/load-women-store.ts` (see [CATALOG-NOTES.md](CATALOG-NOTES.md)). It backs up existing content under `data/backups` first. Test fixtures under `tests/fixtures` are separate from this catalog.
 
 ### Without an installed PostgreSQL server
 
@@ -56,9 +56,11 @@ Start the database again after stopping all servers or restarting your computer.
 
 For offline UI development, `IMAGE_STORAGE=local` saves optimized uploads under `uploads/`. Hosted deployment must use Cloudinary. The application refuses to start in Cloudinary mode when credentials are missing.
 
-## Studio catalog
+## Women's catalog
 
-`npx tsx scripts/load-catalog.ts` loads 191 distinct products (women, men, kids, footwear, accessories) with studio-style photos and hides older preview listings that shared photos. See [CATALOG-NOTES.md](CATALOG-NOTES.md) for where the photos come from and what to replace before selling.
+The store sells women's fashion only: Ethnic Wear, Workwear and Jewellery & Accessories. `npx tsx scripts/load-women-store.ts` loads the 11-product HD launch catalog, banners and copy, and removes earlier demo listings. See [CATALOG-NOTES.md](CATALOG-NOTES.md), including what to replace before selling.
+
+Adding to the bag shows the product flying into the bag icon, a bounce on the icon and a toast with a shortcut to the bag (the flight is skipped when the device asks for reduced motion).
 
 ## Orders & payments
 

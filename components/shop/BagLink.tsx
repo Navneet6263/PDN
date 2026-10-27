@@ -27,7 +27,7 @@ export default function BagLink() {
         aria-label={`Bag, ${items.reduce((s, i) => s + i.quantity, 0)} items`}
         className="relative flex flex-col items-center gap-1 text-[10px] font-semibold"
       >
-        <ShoppingBag size={20} />
+        <ShoppingBag size={20} data-bag-target />
         <span>Bag ({items.reduce((s, i) => s + i.quantity, 0)})</span>
       </Link>
     </div>

@@ -35,7 +35,7 @@ export default function StyleResults({
             {profile.mood === "office"
               ? `Monday–${profile.saturday ? "Saturday" : "Friday"} · relaxed / smart-casual picks`
               : "Three ideas for your next plans"}{" "}
-            · {profile.audience} ·{" "}
+            ·{" "}
             {profile.budget === 10000000
               ? "all budgets"
               : `up to ${money(profile.budget)} per product`}
@@ -54,13 +54,14 @@ export default function StyleResults({
         <div className="rounded-xl border border-dashed border-[#efbbc8] bg-white p-8 text-center">
           <h4 className="font-bold">Your vibe deserves the right match.</h4>
           <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[#818493]">
-            No available styles match this mood and budget yet. Try another mood or price range.
+            No available styles match this mood and budget yet. Try another mood
+            or price range.
           </p>
           <Link
-            href={`/?category=${profile.audience}#catalog`}
+            href="/#catalog"
             className="mt-5 inline-block text-xs font-bold text-[#ff3f6c]"
           >
-            Browse this department →
+            Browse the collection →
           </Link>
         </div>
       ) : (
@@ -119,8 +120,8 @@ export default function StyleResults({
           </div>
           {pool.length < days.length && (
             <p className="mt-4 text-[11px] text-[#868391]">
-              {pool.length} matching styles available, so some days repeat a pick. Rewearing is a
-              style choice too.
+              {pool.length} matching styles available, so some days repeat a
+              pick. Rewearing is a style choice too.
             </p>
           )}
         </>

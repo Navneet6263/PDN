@@ -1,7 +1,12 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { X, ArrowRight, ArrowLeft, Sparkles } from "lucide-react";
-import { initialProfile, moodLabels, moods, type StyleProfile } from "@/lib/style-planner";
+import {
+  initialProfile,
+  moodLabels,
+  moods,
+  type StyleProfile,
+} from "@/lib/style-planner";
 type Props = {
   initial: StyleProfile | null;
   onSave: (profile: StyleProfile) => void;
@@ -23,8 +28,10 @@ export default function StyleQuiz({ initial, onSave, onClose }: Props) {
       previous?.focus();
     };
   }, []);
-  const choice = <K extends keyof StyleProfile>(key: K, value: StyleProfile[K]) =>
-    setDraft((p) => ({ ...p, [key]: value }));
+  const choice = <K extends keyof StyleProfile>(
+    key: K,
+    value: StyleProfile[K],
+  ) => setDraft((p) => ({ ...p, [key]: value }));
   const options = (
     key: keyof StyleProfile,
     items: { value: string | number | boolean; label: string; hint?: string }[],
@@ -34,17 +41,15 @@ export default function StyleQuiz({ initial, onSave, onClose }: Props) {
         <button
           type="button"
           key={String(item.value)}
-          onClick={() => {
-            choice(key, item.value as never);
-            if (key === "audience" && item.value === "kids")
-              setDraft((p) => ({ ...p, mood: "festive" }));
-          }}
+          onClick={() => choice(key, item.value as never)}
           aria-pressed={draft[key] === item.value}
           className={`rounded-xl border-2 p-4 text-left transition ${draft[key] === item.value ? "border-[#ff3f6c] bg-[#fff2f5]" : "border-[#eeedf1] bg-white hover:border-[#ffacc0]"}`}
         >
           <span className="text-sm font-bold">{item.label}</span>
           {item.hint && (
-            <span className="mt-1 block text-xs leading-5 text-[#818493]">{item.hint}</span>
+            <span className="mt-1 block text-xs leading-5 text-[#818493]">
+              {item.hint}
+            </span>
           )}
         </button>
       ))}
@@ -82,7 +87,10 @@ export default function StyleQuiz({ initial, onSave, onClose }: Props) {
             />
           ))}
         </div>
-        <h2 id="style-quiz-title" className="text-2xl font-extrabold tracking-tight">
+        <h2
+          id="style-quiz-title"
+          className="text-2xl font-extrabold tracking-tight"
+        >
           {
             [
               "What is your shopping mood today?",
@@ -103,20 +111,12 @@ export default function StyleQuiz({ initial, onSave, onClose }: Props) {
         {step === 0 && (
           <div className="space-y-6">
             <fieldset>
-              <legend className="mb-3 text-xs font-bold">Who are we styling?</legend>
-              {options("audience", [
-                { value: "women", label: "Women" },
-                { value: "men", label: "Men" },
-                { value: "kids", label: "Little ones" },
-              ])}
-            </fieldset>
-            <fieldset>
-              <legend className="mb-3 text-xs font-bold">What are you dressing for?</legend>
+              <legend className="mb-3 text-xs font-bold">
+                What are you dressing for?
+              </legend>
               {options(
                 "mood",
-                moods
-                  .filter((m) => draft.audience !== "kids" || !["office", "college"].includes(m))
-                  .map((value) => ({ value, label: moodLabels[value] })),
+                moods.map((value) => ({ value, label: moodLabels[value] })),
               )}
             </fieldset>
           </div>
@@ -124,7 +124,9 @@ export default function StyleQuiz({ initial, onSave, onClose }: Props) {
         {step === 1 && (
           <div className="space-y-6">
             <fieldset>
-              <legend className="mb-3 text-xs font-bold">Your style preference</legend>
+              <legend className="mb-3 text-xs font-bold">
+                Your style preference
+              </legend>
               {options("style", [
                 {
                   value: "ethnic",
@@ -136,11 +138,17 @@ export default function StyleQuiz({ initial, onSave, onClose }: Props) {
                   label: "Keep it minimal",
                   hint: "Easy silhouettes & simple details",
                 },
-                { value: "bold", label: "A little extra", hint: "Prints, colour & personality" },
+                {
+                  value: "bold",
+                  label: "A little extra",
+                  hint: "Prints, colour & personality",
+                },
               ])}
             </fieldset>
             <fieldset>
-              <legend className="mb-3 text-xs font-bold">Budget per product</legend>
+              <legend className="mb-3 text-xs font-bold">
+                Budget per product
+              </legend>
               {options("budget", [
                 { value: 1000, label: "Up to ₹1,000" },
                 { value: 2500, label: "Up to ₹2,500" },
@@ -153,7 +161,9 @@ export default function StyleQuiz({ initial, onSave, onClose }: Props) {
         {step === 2 &&
           (draft.mood === "office" ? (
             <fieldset>
-              <legend className="mb-4 text-lg font-bold">Working on Saturdays too? 👀</legend>
+              <legend className="mb-4 text-lg font-bold">
+                Working on Saturdays too? 👀
+              </legend>
               {options("saturday", [
                 {
                   value: false,
@@ -171,13 +181,15 @@ export default function StyleQuiz({ initial, onSave, onClose }: Props) {
                   ? "Saturday attendance is mandatory. A great outfit makes it easier. 😅"
                   : "A five-day week. Now that is a weekend worth celebrating!"}
                 <br />
-                Suggestions are for a relaxed / smart-casual office. Please follow your workplace
-                dress code.
+                Suggestions are for a relaxed / smart-casual office. Please
+                follow your workplace dress code.
               </p>
             </fieldset>
           ) : (
             <div className="rounded-xl bg-[#fff2f5] p-5">
-              <p className="text-lg font-bold">{moodLabels[draft.mood]} it is! ✨</p>
+              <p className="text-lg font-bold">
+                {moodLabels[draft.mood]} it is! ✨
+              </p>
               <p className="mt-3 text-sm leading-6">
                 {draft.mood === "college"
                   ? "Lectures, lunch breaks and after-class plans — three looks, your style."
@@ -197,7 +209,10 @@ export default function StyleQuiz({ initial, onSave, onClose }: Props) {
               Back
             </button>
           ) : (
-            <button onClick={onClose} className="text-xs text-[#858896] underline">
+            <button
+              onClick={onClose}
+              className="text-xs text-[#858896] underline"
+            >
               Just browsing
             </button>
           )}
@@ -210,7 +225,8 @@ export default function StyleQuiz({ initial, onSave, onClose }: Props) {
           </button>
         </div>
         <p className="mt-5 text-[10px] leading-5 text-[#999ba6]">
-          No login needed. Your choices stay in this browser. Change or clear them anytime.
+          No login needed. Your choices stay in this browser. Change or clear
+          them anytime.
         </p>
       </div>
     </dialog>

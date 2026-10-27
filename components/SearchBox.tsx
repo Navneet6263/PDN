@@ -97,7 +97,7 @@ export default function SearchBox() {
             ))}
           </ul>
           {!matches.length && (
-            <p className="py-2 text-xs">No matching styles yet. Try kurta, saree or kids.</p>
+            <p className="py-2 text-xs">No matching styles yet. Try saree, anarkali or kurta set.</p>
           )}
           <button className="mt-2 w-full rounded-lg bg-[#f6f7f8] p-3 text-left text-xs font-semibold text-[#626777]">
             See all results for “{query}” →

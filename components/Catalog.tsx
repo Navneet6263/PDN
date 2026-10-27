@@ -50,7 +50,7 @@ export default function Catalog({
     if (curated) return;
     const apply = (p: StyleProfile | null) => {
       setPersonalStyle(p);
-      setCategory(p?.audience || "all");
+      setCategory("all");
       setType("all");
       setBudget(p?.budget || 10000000);
       setQuery("");
@@ -103,7 +103,7 @@ export default function Catalog({
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Try saree, kurta or kids…"
+            placeholder="Try saree, anarkali or kurta set…"
             className="min-w-0 flex-1 bg-transparent py-3 text-xs outline-none"
           />
           {query && (

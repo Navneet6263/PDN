@@ -1,5 +1,7 @@
 import { test, expect } from "@playwright/test";
-test("style banner opens a Saturday plan on demand and remembers it", async ({ page }) => {
+test("style banner opens a Saturday plan on demand and remembers it", async ({
+  page,
+}) => {
   await page.goto("/");
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await page.locator("#style-studio > button").click();
@@ -7,18 +9,26 @@ test("style banner opens a Saturday plan on demand and remembers it", async ({ p
   await expect(dialog).toBeVisible();
   await dialog.getByRole("button", { name: "Continue", exact: true }).click();
   await dialog.getByRole("button", { name: "Continue", exact: true }).click();
-  await expect(dialog.getByText("Working on Saturdays too? 👀", { exact: true })).toBeVisible();
-  await dialog.getByRole("button", { name: "Yes, Saturdays too.", exact: false }).click();
+  await expect(
+    dialog.getByText("Working on Saturdays too? 👀", { exact: true }),
+  ).toBeVisible();
+  await dialog
+    .getByRole("button", { name: "Yes, Saturdays too.", exact: false })
+    .click();
   await dialog.getByRole("button", { name: "Show my style plan" }).click();
   await expect(dialog).toBeVisible();
   const studio = page.locator("#style-studio");
   await expect(studio.locator("article")).toHaveCount(6);
   const images = await studio
     .locator("article img")
-    .evaluateAll((nodes) => nodes.map((node) => (node as HTMLImageElement).src));
+    .evaluateAll((nodes) =>
+      nodes.map((node) => (node as HTMLImageElement).src),
+    );
   expect(new Set(images).size).toBe(6);
   await expect(studio.getByText(/Your calendar let you down/)).toBeVisible();
-  await expect(page.locator("#catalog").getByText(/Picked for your office mood/)).toBeVisible();
+  await expect(
+    page.locator("#catalog").getByText(/Picked for your office mood/),
+  ).toBeVisible();
   await page.reload();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await studio.locator(":scope > button").click();
@@ -26,19 +36,29 @@ test("style banner opens a Saturday plan on demand and remembers it", async ({ p
   await studio.getByRole("button", { name: "Change my style" }).click();
   await dialog.getByRole("button", { name: "Continue", exact: true }).click();
   await dialog.getByRole("button", { name: "Continue", exact: true }).click();
-  await dialog.getByRole("button", { name: "No, the weekend is mine!", exact: false }).click();
+  await dialog
+    .getByRole("button", { name: "No, the weekend is mine!", exact: false })
+    .click();
   await dialog.getByRole("button", { name: "Show my style plan" }).click();
   await expect(studio.locator("article")).toHaveCount(5);
   const before = await studio.locator("article h4").first().textContent();
   await studio.getByRole("button", { name: "Remix my picks" }).click();
   await expect(studio.locator("article h4").first()).not.toHaveText(before!);
   await page.setViewportSize({ width: 390, height: 844 });
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
   await studio.getByRole("button", { name: "Clear preferences" }).click();
   await expect(studio.locator("article")).toHaveCount(0);
-  expect(await page.evaluate(() => localStorage.getItem("terra-style-profile-v1"))).toBeNull();
+  expect(
+    await page.evaluate(() => localStorage.getItem("terra-style-profile-v1")),
+  ).toBeNull();
 });
-test("quiz can be skipped, reopened and used for non-office moods", async ({ page }) => {
+test("quiz can be skipped, reopened and used for non-office moods", async ({
+  page,
+}) => {
   await page.goto("/");
   const dialog = page.getByRole("dialog");
   await expect(dialog).toHaveCount(0);
@@ -51,11 +71,17 @@ test("quiz can be skipped, reopened and used for non-office moods", async ({ pag
   await expect(dialog).toHaveCount(0);
   await page.getByRole("button", { name: "My style", exact: true }).click();
   await expect(dialog).toBeVisible();
-  await dialog.getByRole("button", { name: "Little ones", exact: true }).click();
-  await expect(dialog.getByRole("button", { name: "Office mood", exact: true })).toHaveCount(0);
+  await expect(
+    dialog.getByRole("button", { name: "Little ones", exact: true }),
+  ).toHaveCount(0);
+  await dialog
+    .getByRole("button", { name: "Celebration mode", exact: true })
+    .click();
   await dialog.getByRole("button", { name: "Continue", exact: true }).click();
   await dialog.getByRole("button", { name: "Continue", exact: true }).click();
-  await expect(dialog.getByText("Working on Saturdays too? 👀", { exact: true })).toHaveCount(0);
+  await expect(
+    dialog.getByText("Working on Saturdays too? 👀", { exact: true }),
+  ).toHaveCount(0);
   await dialog.getByRole("button", { name: "Show my style plan" }).click();
   await expect(page.locator("#style-studio article")).toHaveCount(3);
 });
