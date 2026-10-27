@@ -129,6 +129,18 @@ test("admin authentication, origin enforcement and session cookies", async () =>
   cookie = header.split(";")[0];
   assert.equal((await api("/auth/me")).status, 200);
 });
+test("the www and bare versions of the site address are both accepted", async () => {
+  const post = (from: string) =>
+    fetch(`${base}/api/auth/login`, {
+      method: "POST",
+      headers: { Origin: from, "Content-Type": "application/json" },
+      body: "{}",
+    });
+  assert.notEqual((await post("http://www.localhost:3000")).status, 403);
+  assert.equal((await post("http://evil.localhost:3000")).status, 403);
+  assert.equal((await post("http://localhost:3001")).status, 403);
+});
+
 test("draft lifecycle, package data, unique slugs and durable PostgreSQL storage", async () => {
   const draft = {
     ...seed[0],

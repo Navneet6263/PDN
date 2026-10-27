@@ -26,7 +26,7 @@ export default async function CheckoutHeader({
           className="flex shrink-0 items-center gap-2"
         >
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#ff3f6c] text-2xl font-black italic text-white sm:h-9 sm:w-9">
-            t
+            {settings.storeName.trim().charAt(0).toLowerCase() || "t"}
           </span>
           <span className="hidden text-base font-extrabold sm:inline">
             {settings.storeName}

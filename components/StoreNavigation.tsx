@@ -42,7 +42,7 @@ export default function StoreNavigation({ store }: { store: Storefront }) {
           className="flex shrink-0 items-center gap-2.5"
         >
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#ff3f6c] text-2xl font-black italic text-white sm:h-10 sm:w-10 sm:text-3xl">
-            t
+            {store.settings.storeName.trim().charAt(0).toLowerCase() || "t"}
           </span>
           <span className="text-base font-extrabold tracking-tight text-[#282c3f] sm:text-lg">
             {store.settings.storeName}

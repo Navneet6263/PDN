@@ -31,12 +31,22 @@ export function createApp(db: Database, config: ServerConfig) {
   app.disable("x-powered-by");
   const auth = createAuth(db, config);
   const online = config.onlinePayment || null;
+  // Shoppers may arrive on either example.com or www.example.com; both are
+  // the same store, so both may make changes.
+  const site = new URL(config.origin);
+  const twin = site.hostname.startsWith("www.")
+    ? site.hostname.slice(4)
+    : `www.${site.hostname}`;
+  const allowedOrigins = new Set([
+    site.origin,
+    `${site.protocol}//${twin}${site.port ? `:${site.port}` : ""}`,
+  ]);
   app.use((req, res, next) => {
     res.set("X-Content-Type-Options", "nosniff");
     if (req.path.startsWith("/api")) res.set("Cache-Control", "no-store");
     if (
       !["GET", "HEAD", "OPTIONS"].includes(req.method) &&
-      req.headers.origin !== config.origin &&
+      !allowedOrigins.has(String(req.headers.origin)) &&
       !req.path.startsWith("/api/payments/webhook/") &&
       !req.path.startsWith("/api/payments/return/")
     ) {
