@@ -168,7 +168,12 @@ export default async function ProductPage({ params }: Props) {
                   <details
                     key={title}
                     className="group py-4"
-                    open={title === "Additional product information"}
+                    open={[
+                      "Exchange rules",
+                      "Return & refund rules",
+                      "Shipping & delivery information",
+                      "Additional product information",
+                    ].includes(title)}
                   >
                     <summary className="cursor-pointer text-sm font-medium text-[#515968]">
                       {title}

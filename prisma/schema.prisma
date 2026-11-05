@@ -102,6 +102,8 @@ model Banner {
   destination String @default("link")
   productIds String[] @default([])
   slot String @default("hero")
+  layout String @default("left")
+  tone String @default("light")
   position Int @default(0)
   active Boolean @default(false)
   startsAt DateTime?
@@ -358,4 +360,12 @@ model Coupon {
   startsAt      DateTime?
   endsAt        DateTime?
   createdAt     DateTime   @default(now())
+}
+
+// Emails collected by the footer newsletter form.
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  source    String   @default("footer")
+  createdAt DateTime @default(now())
 }

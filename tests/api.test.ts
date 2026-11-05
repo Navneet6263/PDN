@@ -11,7 +11,11 @@ import { createApp } from "../server/app";
 import { openDatabase, type Database } from "../server/db";
 import { productSchema } from "../server/validation";
 import seed from "./fixtures/demo-products.json";
-import { checkControls, checkRoles } from "./admin-controls";
+import {
+  checkControls,
+  checkRoles,
+  checkStorefrontBuilder,
+} from "./admin-controls";
 import { checkShopping } from "./customer-flow";
 import { checkCollections } from "./banner-collections";
 import { checkCoupons, checkOrders } from "./order-flow";
@@ -254,6 +258,8 @@ test("image uploads require login, validate content and produce optimized WebP",
 });
 test("merchandising, category visibility, scheduled banners and settings persist", async () =>
   checkControls(api));
+test("homepage sections, banner glass style and newsletter sign-ups are admin-controlled", async () =>
+  checkStorefrontBuilder(api));
 test("team roles, revoked sessions, support and sales use real records", async () =>
   checkRoles(api));
 test("customer cart merges once, checkout validates and photo reviews persist", async () =>

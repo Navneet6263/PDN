@@ -23,7 +23,9 @@ export default function BannerDestination({
     collection = value.destination === "collection";
   const update = (productIds: string[]) => onChange({ ...value, productIds });
   const matches = products.filter((p) =>
-    `${p.name} ${p.category} ${p.subCategory}`.toLowerCase().includes(query.toLowerCase()),
+    `${p.name} ${p.category} ${p.subCategory}`
+      .toLowerCase()
+      .includes(query.toLowerCase()),
   );
   return (
     <section className="mt-6 space-y-4 rounded-xl border bg-cream p-5">
@@ -37,7 +39,9 @@ export default function BannerDestination({
           onChange={(e) => onChange({ ...value, destination: e.target.value })}
         >
           <option value="link">A product, category or custom link</option>
-          <option value="collection">A selected festival / occasion collection</option>
+          <option value="collection">
+            A selected festival / occasion collection
+          </option>
         </select>
       </label>
       {error && (
@@ -48,13 +52,19 @@ export default function BannerDestination({
       {collection ? (
         <>
           <p className="text-xs leading-5 text-muted">
-            Choose up to 100 products. Only published products in visible categories appear to
-            shoppers. Set the banner title, image and dates above for each festival.
+            Choose up to 100 products. Only published products in visible
+            categories appear to shoppers. Set the banner title, image and dates
+            above for each festival.
           </p>
-          <p className="text-sm font-bold">Selected styles ({selected.length}/100)</p>
+          <p className="text-sm font-bold">
+            Selected styles ({selected.length}/100)
+          </p>
           <ol className="max-h-52 space-y-2 overflow-y-auto">
             {selected.map((id, i) => (
-              <li key={id} className="flex items-center gap-2 rounded border bg-white p-2 text-xs">
+              <li
+                key={id}
+                className="flex items-center gap-2 rounded border bg-white p-2 text-xs"
+              >
                 <span className="flex-1">
                   {i + 1}.{" "}
                   {products.find((p) => p.id === id)?.name ||
@@ -89,7 +99,7 @@ export default function BannerDestination({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="field"
-            placeholder="Search saree, kurta, kids or a product name"
+            placeholder="Search kurta set, kurti or a product name"
           />
           <div className="grid max-h-72 gap-2 overflow-y-auto sm:grid-cols-2">
             {matches.map((p) => (
@@ -103,15 +113,22 @@ export default function BannerDestination({
                   disabled={!selected.includes(p.id) && selected.length >= 100}
                   onChange={(e) =>
                     update(
-                      e.target.checked ? [...selected, p.id] : selected.filter((id) => id !== p.id),
+                      e.target.checked
+                        ? [...selected, p.id]
+                        : selected.filter((id) => id !== p.id),
                     )
                   }
                 />
-                <img src={p.image} alt="" className="h-14 w-10 rounded object-cover" />
+                <img
+                  src={p.image}
+                  alt=""
+                  className="h-14 w-10 rounded object-cover"
+                />
                 <span>
                   {p.name}
                   <small className="mt-1 block text-muted">
-                    {money(p.price)} · {p.published ? "Published" : "Draft — hidden"}
+                    {money(p.price)} ·{" "}
+                    {p.published ? "Published" : "Draft — hidden"}
                   </small>
                 </span>
               </label>
@@ -128,7 +145,8 @@ export default function BannerDestination({
             </a>
           )}
           <p className="text-xs text-muted">
-            Save before previewing. Disabled or out-of-date banners do not expose a collection page.
+            Save before previewing. Disabled or out-of-date banners do not
+            expose a collection page.
           </p>
         </>
       ) : (
@@ -139,13 +157,18 @@ export default function BannerDestination({
               aria-label="Quick product link"
               className="field"
               value={
-                products.some((p) => `/product/${p.slug}` === value.link) ? String(value.link) : ""
+                products.some((p) => `/product/${p.slug}` === value.link)
+                  ? String(value.link)
+                  : ""
               }
               onChange={(e) => {
-                if (e.target.value) onChange({ ...value, link: e.target.value });
+                if (e.target.value)
+                  onChange({ ...value, link: e.target.value });
               }}
             >
-              <option value="">Choose a product, or enter a destination above</option>
+              <option value="">
+                Choose a product, or enter a destination above
+              </option>
               {products.map((p) => (
                 <option key={p.id} value={`/product/${p.slug}`}>
                   {p.name}
@@ -154,7 +177,8 @@ export default function BannerDestination({
             </select>
           </label>
           <p className="text-xs text-muted">
-            Use Button destination above for a category, search or another page in your store.
+            Use Button destination above for a category, search or another page
+            in your store.
           </p>
         </>
       )}

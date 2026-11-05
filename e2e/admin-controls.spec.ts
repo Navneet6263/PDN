@@ -42,7 +42,7 @@ test("admin placement, banners and settings appear on the customer page", async 
     headers,
     data: {
       ...fixture[0],
-      category: "ethnic-wear",
+      category: "workwear-sets",
       name: `Placement Test ${unique}`,
       slug: `placement-test-${unique}`,
       published: true,
@@ -112,14 +112,12 @@ test("admin placement, banners and settings appear on the customer page", async 
     await expect(
       customer.getByRole("link", { name: "Browser Test Store home" }),
     ).toBeVisible();
-    const top = customer
-      .locator("section")
-      .filter({
-        has: customer.getByRole("heading", {
-          name: original.topTenTitle,
-          exact: true,
-        }),
-      });
+    const top = customer.locator("section").filter({
+      has: customer.getByRole("heading", {
+        name: original.topTenTitle,
+        exact: true,
+      }),
+    });
     await expect(
       top.getByRole("heading", { name: product.name, exact: true }),
     ).toBeVisible();

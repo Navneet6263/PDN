@@ -32,6 +32,7 @@ export type Product = {
   seoDescription: string;
   reviewCount?: number;
   ratingAverage?: number | null;
+  sold?: number;
 };
 export const categories: Category[] = ["women", "men", "kids", "accessories"];
 export const money = (amount: number) =>

@@ -56,6 +56,10 @@ Start the database again after stopping all servers or restarting your computer.
 
 For offline UI development, `IMAGE_STORAGE=local` saves optimized uploads under `uploads/`. Hosted deployment must use Cloudinary. The application refuses to start in Cloudinary mode when credentials are missing.
 
+## Workari storefront
+
+The store is set up for **Workari**, women's workwear. `npx tsx scripts/load-women-store.ts` loads the launch catalog (Workwear Sets and Kurtis), banners and copy. The design uses frosted-glass hero and promotion banners, a glass header with rotating announcements, and a footer with newsletter sign-up, social links and contact details. Everything outside products is controlled from **Admin → Homepage & Footer** and **Admin → Banners**. Progress against the Workari specification is tracked in [WORKARI-REQUIREMENTS.md](WORKARI-REQUIREMENTS.md).
+
 ## Women's catalog
 
 The store sells women's fashion only: Ethnic Wear, Workwear and Jewellery & Accessories. `npx tsx scripts/load-women-store.ts` loads the 11-product HD launch catalog, banners and copy, and removes earlier demo listings. See [CATALOG-NOTES.md](CATALOG-NOTES.md), including what to replace before selling.

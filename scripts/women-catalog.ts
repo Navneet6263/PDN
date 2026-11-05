@@ -5,7 +5,8 @@ import { productSchema } from "../server/validation";
 type Row = {
   slug: string;
   name: string;
-  category: "ethnic-wear" | "workwear" | "jewellery-accessories";
+  category:
+    "workwear-sets" | "kurtis" | "ethnic-wear" | "jewellery-accessories";
   subCategory: string;
   price: number;
   mrp: number;
@@ -92,7 +93,7 @@ const rows: Row[] = [
   {
     slug: "pastel-block-print-kurti-set",
     name: "Pastel Block-Print Cotton Kurti",
-    category: "ethnic-wear",
+    category: "kurtis",
     subCategory: "Kurtis",
     price: 899,
     mrp: 1499,
@@ -132,7 +133,7 @@ const rows: Row[] = [
   {
     slug: "powder-blue-chikan-kurta-set",
     name: "Powder Blue Chikankari Kurta Set",
-    category: "workwear",
+    category: "workwear-sets",
     subCategory: "Kurta Sets",
     price: 1699,
     mrp: 2799,
@@ -153,7 +154,7 @@ const rows: Row[] = [
   {
     slug: "sage-straight-kurta-set",
     name: "Sage Linen-Blend Kurta Set",
-    category: "workwear",
+    category: "workwear-sets",
     subCategory: "Kurta Sets",
     price: 1499,
     mrp: 2499,
@@ -172,7 +173,7 @@ const rows: Row[] = [
   {
     slug: "rose-block-print-kurta-set",
     name: "Rose Block-Print Kurta Set",
-    category: "workwear",
+    category: "workwear-sets",
     subCategory: "Kurta Sets",
     price: 1299,
     mrp: 2199,
@@ -191,7 +192,7 @@ const rows: Row[] = [
   {
     slug: "ivory-shirt-and-trouser-set",
     name: "Ivory Shirt & Tailored Trouser Set",
-    category: "workwear",
+    category: "workwear-sets",
     subCategory: "Shirt & Trouser Sets",
     price: 1899,
     mrp: 3199,
@@ -211,7 +212,7 @@ const rows: Row[] = [
   {
     slug: "navy-geometric-kurta-set",
     name: "Navy Geometric Print Kurta Set",
-    category: "workwear",
+    category: "workwear-sets",
     subCategory: "Kurta Sets",
     price: 1599,
     mrp: 2599,
@@ -230,7 +231,7 @@ const rows: Row[] = [
   {
     slug: "teal-asymmetric-tunic-set",
     name: "Teal Asymmetric Tunic Set",
-    category: "workwear",
+    category: "workwear-sets",
     subCategory: "Tunic Sets",
     price: 2199,
     mrp: 3499,
@@ -249,11 +250,16 @@ const rows: Row[] = [
   },
 ];
 
+// Workari sells workwear. Festive and bridal pieces stay in admin as drafts
+// (publish them from Products if the business decides to sell them).
+const workwear = (r: Row) =>
+  r.category === "workwear-sets" || r.category === "kurtis";
+
 export const womenProducts = rows.map((r, i) =>
   productSchema.parse({
     name: r.name,
     slug: r.slug,
-    brand: "Terra Studios",
+    brand: "Workari",
     category: r.category,
     subCategory: r.subCategory,
     price: r.price,
@@ -269,7 +275,7 @@ export const womenProducts = rows.map((r, i) =>
     colors: r.colors,
     sizes: r.sizes || ["XS", "S", "M", "L", "XL", "XXL"],
     packageContents: r.pack.map(([name, quantity]) => ({ name, quantity })),
-    published: true,
+    published: workwear(r),
     featured: Boolean(r.rank && r.rank <= 4),
     topTenRank: r.rank ?? null,
     displayOrder: i + 1,
@@ -280,28 +286,39 @@ export const womenProducts = rows.map((r, i) =>
       ...r.moods.map((m) => `mood:${m}`),
       `style:${r.style}`,
     ],
-    seoTitle: `${r.name} | Terra Studios`.slice(0, 70),
+    seoTitle: `${r.name} | Workari`.slice(0, 70),
     seoDescription: r.description.slice(0, 167).replace(/\s+\S*$/, "") + "…",
   }),
 );
 
 export const womenDepartments = [
   {
+    slug: "workwear-sets",
+    label: "Workwear Sets",
+    image: "/images/women/ivory-shirt-and-trouser-set-2.webp",
+    subCategories: ["Kurta Sets", "Shirt & Trouser Sets", "Tunic Sets"],
+    active: true,
+  },
+  {
+    slug: "kurtis",
+    label: "Kurtis",
+    image: "/images/women/pastel-block-print-kurti-set-2.webp",
+    subCategories: ["Kurtis"],
+    active: true,
+  },
+  // Hidden until occasion wear is approved for sale.
+  {
     slug: "ethnic-wear",
     label: "Ethnic Wear",
     image: "/images/women/emerald-embroidered-anarkali-set-2.webp",
-    subCategories: ["Sarees", "Anarkalis", "Lehengas", "Kurtis"],
-  },
-  {
-    slug: "workwear",
-    label: "Workwear",
-    image: "/images/women/ivory-shirt-and-trouser-set-2.webp",
-    subCategories: ["Kurta Sets", "Shirt & Trouser Sets", "Tunic Sets"],
+    subCategories: ["Sarees", "Anarkalis", "Lehengas"],
+    active: false,
   },
   {
     slug: "jewellery-accessories",
     label: "Jewellery & Accessories",
     image: "/images/women/kundan-jhumka-and-potli-set-2.webp",
     subCategories: ["Jewellery Sets"],
+    active: false,
   },
 ];

@@ -15,7 +15,9 @@ export default function SearchBox() {
       .then(setProducts)
       .catch(() => {});
   }, []);
-  const matches = query.trim() ? orderProducts(products, query, "featured").slice(0, 5) : [];
+  const matches = query.trim()
+    ? orderProducts(products, query, "featured").slice(0, 5)
+    : [];
   const normalized = normalizeSearch(query);
   return (
     <form
@@ -41,7 +43,9 @@ export default function SearchBox() {
           aria-expanded={open && !!query}
           aria-controls="search-suggestions"
           aria-autocomplete="list"
-          aria-activedescendant={open && active >= 0 ? `suggestion-${active}` : undefined}
+          aria-activedescendant={
+            open && active >= 0 ? `suggestion-${active}` : undefined
+          }
           autoComplete="off"
           value={query}
           onFocus={() => setOpen(true)}
@@ -59,11 +63,13 @@ export default function SearchBox() {
               e.preventDefault();
               setOpen(true);
               setActive((n) =>
-                e.key === "ArrowDown" ? Math.min(matches.length - 1, n + 1) : Math.max(-1, n - 1),
+                e.key === "ArrowDown"
+                  ? Math.min(matches.length - 1, n + 1)
+                  : Math.max(-1, n - 1),
               );
             }
           }}
-          placeholder="Search saree, kurta, pants..."
+          placeholder="Search kurta sets, kurtis, co-ords..."
           className="min-w-0 flex-1 bg-transparent py-3 text-xs outline-none"
         />
         <button
@@ -82,22 +88,35 @@ export default function SearchBox() {
           </p>
           <ul id="search-suggestions" role="listbox">
             {matches.map((p, i) => (
-              <li key={p.id} id={`suggestion-${i}`} role="option" aria-selected={active === i}>
+              <li
+                key={p.id}
+                id={`suggestion-${i}`}
+                role="option"
+                aria-selected={active === i}
+              >
                 <a
                   href={`/product/${p.slug}`}
                   className={`flex items-center gap-3 rounded-lg p-2 text-xs transition-colors duration-150 hover:bg-[#f6f7f8] ${active === i ? "bg-[#f1f2f4]" : ""}`}
                 >
-                  <img src={p.image} alt="" className="h-12 w-9 rounded object-cover" />
+                  <img
+                    src={p.image}
+                    alt=""
+                    className="h-12 w-9 rounded object-cover"
+                  />
                   <span className="min-w-0 break-words text-[#4d5261]">
                     {p.name}
-                    <small className="block text-gray-500">{p.subCategory}</small>
+                    <small className="block text-gray-500">
+                      {p.subCategory}
+                    </small>
                   </span>
                 </a>
               </li>
             ))}
           </ul>
           {!matches.length && (
-            <p className="py-2 text-xs">No matching styles yet. Try saree, anarkali or kurta set.</p>
+            <p className="py-2 text-xs">
+              No matching styles yet. Try kurta set, kurti or co-ord.
+            </p>
           )}
           <button className="mt-2 w-full rounded-lg bg-[#f6f7f8] p-3 text-left text-xs font-semibold text-[#626777]">
             See all results for “{query}” →

@@ -6,6 +6,7 @@ import { type ResourceConfig } from "./resource-config";
 import SupportNotes from "./SupportNotes";
 import SalesSummary from "./SalesSummary";
 import BannerDestination from "./BannerDestination";
+import GlassBanner, { type GlassBannerContent } from "../GlassBanner";
 export default function ResourcePanel({ config }: { config: ResourceConfig }) {
   const [rows, setRows] = useState<RecordData[]>([]);
   const [draft, setDraft] = useState<RecordData | null>(null);
@@ -34,7 +35,9 @@ export default function ResourcePanel({ config }: { config: ResourceConfig }) {
       const payload = { ...draft };
       for (const f of config.fields)
         if (f.type === "list")
-          payload[f.key] = (payload[f.key] as string[]).map((s) => s.trim()).filter(Boolean);
+          payload[f.key] = (payload[f.key] as string[])
+            .map((s) => s.trim())
+            .filter(Boolean);
       await request(`/admin/${config.path}${draft.id ? `/${draft.id}` : ""}`, {
         method: draft.id ? "PUT" : "POST",
         body: JSON.stringify(payload),
@@ -53,7 +56,9 @@ export default function ResourcePanel({ config }: { config: ResourceConfig }) {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="serif text-4xl">{config.title}</h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">{config.description}</p>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
+            {config.description}
+          </p>
         </div>
         <button
           className="btn rounded-lg"
@@ -87,7 +92,9 @@ export default function ResourcePanel({ config }: { config: ResourceConfig }) {
             void save();
           }}
         >
-          <h2 className="text-xl font-medium">{draft.id ? "Edit record" : "New record"}</h2>
+          <h2 className="text-xl font-medium">
+            {draft.id ? "Edit record" : "New record"}
+          </h2>
           <fieldset disabled={busy || uploading}>
             <ControlFields
               onBusy={setUploading}
@@ -99,9 +106,32 @@ export default function ResourcePanel({ config }: { config: ResourceConfig }) {
               value={draft}
               onChange={setDraft}
             />
-            {config.path === "banners" && <BannerDestination value={draft} onChange={setDraft} />}
+            {config.path === "banners" && (
+              <BannerDestination value={draft} onChange={setDraft} />
+            )}
           </fieldset>
-          {config.path === "support" && <SupportNotes draft={draft} onChange={setDraft} />}
+          {config.path === "banners" && (
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-stone-600">
+                Live preview · what shoppers will see
+              </p>
+              {draft.image ? (
+                <div className="storefront max-w-4xl">
+                  <GlassBanner
+                    banner={draft as unknown as GlassBannerContent}
+                    variant={draft.slot === "promo" ? "promo" : "hero"}
+                  />
+                </div>
+              ) : (
+                <p className="rounded-xl border border-dashed p-8 text-center text-xs text-muted">
+                  Add a desktop image to see the preview.
+                </p>
+              )}
+            </div>
+          )}
+          {config.path === "support" && (
+            <SupportNotes draft={draft} onChange={setDraft} />
+          )}
           <div className="flex gap-3">
             <button className="btn" disabled={busy || uploading}>
               {busy ? "Saving…" : "Save changes"}
@@ -169,7 +199,12 @@ export default function ResourcePanel({ config }: { config: ResourceConfig }) {
                             className="text-red-700 underline"
                             disabled={busy || uploading}
                             onClick={async () => {
-                              if (!window.confirm("Delete this record permanently?")) return;
+                              if (
+                                !window.confirm(
+                                  "Delete this record permanently?",
+                                )
+                              )
+                                return;
                               setBusy(true);
                               setError("");
                               try {
@@ -195,7 +230,9 @@ export default function ResourcePanel({ config }: { config: ResourceConfig }) {
           </div>
           {!rows.length && (
             <p className="py-10 text-center text-muted">
-              {loaded ? "No records yet. Add your first record above." : "Loading…"}
+              {loaded
+                ? "No records yet. Add your first record above."
+                : "Loading…"}
             </p>
           )}
         </div>

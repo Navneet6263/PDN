@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import type { Product } from "@/lib/types";
 import type { Storefront } from "@/lib/store-types";
+import { SectionTitle } from "./ProductRail";
 export function SectionHeading({
   title,
   subtitle,
@@ -40,61 +41,51 @@ export function CategoryShop({
   store: Storefront;
   products: Product[];
 }) {
-  const types = Array.from(
-    {
-      length: Math.max(
-        0,
-        ...store.categories.map((c) => c.subCategories.length),
-      ),
-    },
-    (_, index) =>
-      store.categories.flatMap((c) => {
-        const type = c.subCategories[index];
-        return type
-          ? [
-              {
-                category: c,
-                type,
-                products: products.filter(
-                  (p) => p.category === c.slug && p.subCategory === type,
-                ),
-              },
-            ]
-          : [];
-      }),
-  )
-    .flat()
+  // Only product types that currently have products, so no empty tiles.
+  const types = store.categories
+    .flatMap((c) =>
+      c.subCategories.map((type) => ({
+        category: c,
+        type,
+        products: products.filter(
+          (p) => p.category === c.slug && p.subCategory === type,
+        ),
+      })),
+    )
     .filter((item) => item.products.length)
     .slice(0, 12);
+  if (!types.length) return null;
   return (
-    <section className="shell py-9 md:py-12">
-      <SectionHeading
+    <section className="shell py-10 md:py-14">
+      <SectionTitle
+        eyebrow="Find your fit"
         title="Shop by category"
-        subtitle="Find your next favourite"
+        href="/#catalog"
       />
-      <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
         {types.map(({ category, type, products: items }) => (
           <Link
             key={`${category.slug}-${type}`}
             href={`/?category=${category.slug}&type=${encodeURIComponent(type)}#catalog`}
-            className="group overflow-hidden rounded-lg border border-[#f0e6e1] bg-[#fff6f1]"
+            className="group relative block aspect-[3/4] overflow-hidden rounded-3xl bg-[#f6efeb]"
           >
-            <div className="aspect-[4/4.5] overflow-hidden">
-              <img
-                src={items[0].image}
-                alt={type}
-                loading="lazy"
-                className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105"
-              />
-            </div>
-            <div className="p-3 text-center">
-              <h3 className="text-xs font-bold text-[#51352f] sm:text-sm">
-                {type}
-              </h3>
-              <p className="mt-1 text-[10px] text-[#a06752] sm:text-xs">
-                From ₹
-                {Math.min(...items.map((p) => p.price)).toLocaleString("en-IN")}
-              </p>
+            <img
+              src={items[0].image}
+              alt=""
+              loading="lazy"
+              className="h-full w-full object-cover object-top transition duration-700 group-hover:scale-[1.06]"
+            />
+            <div className="absolute inset-x-2 bottom-2">
+              <div className="glass-light rounded-2xl px-3 py-2.5">
+                <h3 className="text-[13px] font-bold leading-tight">{type}</h3>
+                <p className="mt-0.5 text-[11px] text-[#7a5c6d]">
+                  {items.length} {items.length === 1 ? "style" : "styles"} ·
+                  from ₹
+                  {Math.min(...items.map((p) => p.price)).toLocaleString(
+                    "en-IN",
+                  )}
+                </p>
+              </div>
             </div>
           </Link>
         ))}
@@ -112,7 +103,7 @@ export function DepartmentStrip({ store }: { store: Storefront }) {
         <Link
           href={`/?category=${c.slug}#catalog`}
           key={c.id}
-          className="flex shrink-0 items-center gap-2 text-xs font-semibold text-[#5b5e6e] hover:text-[#ff3f6c]"
+          className="flex shrink-0 items-center gap-2 rounded-full border border-[#f3e4e8] bg-white py-1 pl-1 pr-4 text-xs font-semibold text-[#3d1f35] hover:border-[#ff3f6c] hover:text-[#ff3f6c]"
         >
           {c.image && (
             <img

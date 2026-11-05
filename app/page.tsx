@@ -1,21 +1,19 @@
-import { Suspense } from "react";
+import { Suspense, type ReactNode } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import StoreHero from "@/components/StoreHero";
 import Catalog from "@/components/Catalog";
-import ProductCard from "@/components/ProductCard";
 import StyleStudio from "@/components/style/StyleStudio";
 import TrustBar from "@/components/TrustBar";
-import {
-  CategoryShop,
-  DepartmentStrip,
-  SectionHeading,
-} from "@/components/HomeCollections";
+import ProductRail from "@/components/ProductRail";
+import GlassBanner from "@/components/GlassBanner";
+import { CategoryShop, DepartmentStrip } from "@/components/HomeCollections";
 import { getProducts, getStorefront } from "@/lib/api";
 import { topTenProducts } from "@/lib/catalog-order";
 import { bannerLink } from "@/lib/banner-link";
+import { homeLayout, type HomeSectionId } from "@/lib/store-types";
 export const dynamic = "force-dynamic";
 export async function generateMetadata(): Promise<Metadata> {
   const { settings: s } = await getStorefront();
@@ -34,93 +32,105 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function Home() {
   const [products, store] = await Promise.all([getProducts(), getStorefront()]);
   const s = store.settings;
-  const top = topTenProducts(products);
+  const inStock = products.filter((p) => p.stock > 0);
+  const promos = store.banners.filter((b) => b.slot === "promo");
+  const bestsellers = [...products]
+    .filter((p) => (p.sold || 0) > 0)
+    .sort((a, b) => (b.sold || 0) - (a.sold || 0))
+    .slice(0, 10);
+  // Every block the admin can arrange in Homepage & Footer.
+  const blocks: Record<HomeSectionId, () => ReactNode> = {
+    hero: () => <StoreHero store={store} />,
+    trust: () => <TrustBar settings={s} />,
+    style: () => <StyleStudio products={products} />,
+    categories: () => <CategoryShop store={store} products={products} />,
+    newarrivals: () => (
+      <ProductRail
+        id="new-arrivals"
+        eyebrow="Just landed"
+        title="New arrivals"
+        href="/?sort=new#catalog"
+        products={inStock.slice(0, 10)}
+      />
+    ),
+    toppicks: () =>
+      s.showTopTen ? (
+        <ProductRail
+          id="top-ten"
+          eyebrow="Chosen by our team"
+          title={s.topTenTitle}
+          href="/#catalog"
+          products={topTenProducts(products)}
+          tinted
+        />
+      ) : null,
+    bestsellers: () => (
+      <ProductRail
+        id="bestsellers"
+        eyebrow="Most ordered"
+        title="Bestsellers"
+        href="/#catalog"
+        products={bestsellers}
+      />
+    ),
+    promos: () =>
+      promos.length > 0 && (
+        <section className="shell grid gap-4 py-8 md:grid-cols-2 md:gap-5 md:py-12">
+          {promos.map((b) => (
+            <Link
+              key={b.id}
+              href={bannerLink(b)}
+              className="block rounded-[28px]"
+            >
+              <GlassBanner banner={b} variant="promo" />
+            </Link>
+          ))}
+        </section>
+      ),
+    catalog: () => (
+      <Suspense fallback={<p className="shell py-20">Loading collection…</p>}>
+        <Catalog store={store} products={products} />
+      </Suspense>
+    ),
+    story: () =>
+      s.showStory && (
+        <section className="shell py-10 md:py-14">
+          <div className="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-[#fff1f4] via-[#fdf6f0] to-[#f7eee8] px-6 py-12 text-center md:px-16 md:py-16">
+            <div
+              aria-hidden="true"
+              className="absolute -left-16 -top-16 h-56 w-56 rounded-full bg-[#ff3f6c]/15 blur-3xl"
+            />
+            <div
+              aria-hidden="true"
+              className="absolute -bottom-20 -right-10 h-64 w-64 rounded-full bg-[#b9915a]/20 blur-3xl"
+            />
+            <p className="relative mb-3 text-[10px] font-bold uppercase tracking-[.24em] text-[#e0315c]">
+              Our promise
+            </p>
+            <h2 className="font-display relative mx-auto max-w-2xl text-3xl font-semibold leading-tight text-[#3d1f35] md:text-5xl">
+              {s.storyTitle}
+            </h2>
+            <p className="relative mx-auto mt-5 max-w-2xl text-sm leading-7 text-[#7a6573] md:text-base">
+              {s.storyText}
+            </p>
+          </div>
+        </section>
+      ),
+    // Rendered by the footer, which appears on every page.
+    newsletter: () => null,
+  };
   return (
-    <div className="storefront">
+    <div className="storefront bg-white">
       <Header />
       <main>
         <DepartmentStrip store={store} />
-        <StoreHero store={store} />
-        <TrustBar settings={s} />
-        <StyleStudio products={products} />
-        <CategoryShop store={store} products={products} />
-        {s.showTopTen && top.length > 0 && (
-          <section
-            id="top-ten"
-            className="scroll-mt-40 bg-[#fff8fa] py-10 md:py-12"
-          >
-            <div className="shell">
-              <SectionHeading
-                title={s.topTenTitle}
-                subtitle="The spotlight is on"
-                href="/#catalog"
-              />
-              <div className="grid auto-cols-[44%] grid-flow-col gap-3 overflow-x-auto pb-4 sm:auto-cols-[29%] lg:auto-cols-[18.8%]">
-                {top.map((p) => (
-                  <div key={p.id} className="min-w-0">
-                    <p className="mb-2 text-[10px] font-bold tracking-widest text-[#cb5073]">
-                      EDIT / {String(p.topTenRank).padStart(2, "0")}
-                    </p>
-                    <ProductCard product={p} />
-                  </div>
-                ))}
-              </div>
+        {homeLayout(s)
+          .filter((x) => x.visible)
+          .map((x) => (
+            <div key={x.id} data-section={x.id}>
+              {blocks[x.id]()}
             </div>
-          </section>
-        )}
-        {store.banners.some((b) => b.slot === "promo") && (
-          <section className="shell grid gap-5 py-10 md:grid-cols-2">
-            {store.banners
-              .filter((b) => b.slot === "promo")
-              .map((b) => (
-                <Link
-                  key={b.id}
-                  href={bannerLink(b)}
-                  className="group grid min-h-64 grid-cols-2 overflow-hidden rounded-xl bg-[#f3eae0]"
-                >
-                  <div className="flex flex-col justify-center p-6 lg:p-9">
-                    <p className="text-[9px] font-bold uppercase tracking-[.15em] text-[#9a6959]">
-                      {b.eyebrow}
-                    </p>
-                    <h2 className="mt-3 text-2xl font-extrabold tracking-tight text-[#49332f]">
-                      {b.title}
-                    </h2>
-                    <p className="mt-3 text-xs leading-5 text-[#856b66]">
-                      {b.subtitle}
-                    </p>
-                    <span className="mt-5 text-xs font-bold text-[#af375a]">
-                      {b.buttonLabel} →
-                    </span>
-                  </div>
-                  <picture className="relative">
-                    <source
-                      media="(max-width:640px)"
-                      srcSet={b.mobileImage || b.image}
-                    />
-                    <img
-                      src={b.image}
-                      alt={b.title}
-                      loading="lazy"
-                      className="absolute h-full w-full object-cover object-top transition duration-500 group-hover:scale-105"
-                    />
-                  </picture>
-                </Link>
-              ))}
-          </section>
-        )}
-        <Suspense fallback={<p className="shell py-20">Loading collection…</p>}>
-          <Catalog store={store} products={products} />
-        </Suspense>
-        {s.showStory && (
-          <section className="border-t bg-[#fff6f1] px-6 py-12 text-center">
-            <h2 className="text-2xl font-bold tracking-tight">
-              {s.storyTitle}
-            </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[#85818a]">
-              {s.storyText}
-            </p>
-          </section>
-        )}
+          ))}
       </main>
       <Footer />
     </div>

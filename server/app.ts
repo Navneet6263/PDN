@@ -14,6 +14,7 @@ import type { ServerConfig } from "./config";
 import { publicStoreRoutes, storeAdminRoutes } from "./store-routes";
 import { teamRoutes } from "./team-routes";
 import { couponAdminRoutes } from "./coupons";
+import { newsletterAdminRoutes, newsletterRoutes } from "./newsletter-routes";
 import { supportRoutes } from "./support-routes";
 import { salesRoutes } from "./sales-routes";
 import { customerAuth } from "./customer-auth";
@@ -105,7 +106,8 @@ export function createApp(db: Database, config: ServerConfig) {
     res.json(res.locals.actor),
   );
   app.use("/api/admin", auth.required);
-  app.use("/api", publicStoreRoutes(db));
+  app.use("/api", publicStoreRoutes(db, Boolean(online)));
+  app.use("/api", newsletterRoutes(db));
   app.use("/api/admin", (req, res, next) => {
     const role = res.locals.actor.role;
     // Everyone on the team can look up orders and leave notes; inventory also
@@ -136,6 +138,7 @@ export function createApp(db: Database, config: ServerConfig) {
     salesRoutes(db),
     adminOrderRoutes(db),
     couponAdminRoutes(db),
+    newsletterAdminRoutes(db),
   );
   app.get("/api/admin/products", async (_req, res) =>
     res.json(await readProducts(db, true)),

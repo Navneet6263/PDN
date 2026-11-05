@@ -15,8 +15,10 @@ import { useShopping } from "./shop/ShoppingProvider";
 // show their own sticky "Add to bag" bar.
 export default function MobileTabBar({
   onCategories,
+  styleOn = true,
 }: {
   onCategories: () => void;
+  styleOn?: boolean;
 }) {
   const path = usePathname();
   const { items, customer } = useShopping();
@@ -29,7 +31,7 @@ export default function MobileTabBar({
   return (
     <nav
       aria-label="Quick links"
-      className="fixed inset-x-0 bottom-0 z-30 flex border-t border-[#eaeaec] bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur xl:hidden"
+      className="fixed inset-x-0 bottom-0 z-30 flex border-t border-white/70 bg-white/80 pb-[env(safe-area-inset-bottom)] shadow-[0_-10px_30px_-18px_rgba(61,31,53,0.35)] backdrop-blur-xl xl:hidden"
     >
       <Link href="/" className={`${tab} ${on(path === "/")}`}>
         <Home size={20} />
@@ -43,18 +45,20 @@ export default function MobileTabBar({
         <LayoutGrid size={20} />
         Categories
       </button>
-      <button
-        type="button"
-        onClick={() => {
-          window.dispatchEvent(new Event("terra-open-style"));
-          if (!document.getElementById("style-studio"))
-            window.location.href = "/#style-studio";
-        }}
-        className={`${tab} ${on(false)}`}
-      >
-        <Sparkles size={20} />
-        My style
-      </button>
+      {styleOn && (
+        <button
+          type="button"
+          onClick={() => {
+            window.dispatchEvent(new Event("terra-open-style"));
+            if (!document.getElementById("style-studio"))
+              window.location.href = "/#style-studio";
+          }}
+          className={`${tab} ${on(false)}`}
+        >
+          <Sparkles size={20} />
+          My style
+        </button>
+      )}
       <Link
         href={customer ? "/orders" : "/account"}
         className={`${tab} ${on(path.startsWith("/orders") || path === "/account")}`}

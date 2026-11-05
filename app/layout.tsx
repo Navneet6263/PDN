@@ -1,23 +1,31 @@
 import type { Metadata } from "next";
-import { siteUrl } from "@/lib/api";
+import { getStorefront, siteUrl } from "@/lib/api";
 import "./globals.css";
 import ShoppingProvider from "@/components/shop/ShoppingProvider";
-export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
-  title: {
-    default: "Terra Studios | A little tradition. A little you.",
-    template: "%s | Terra Studios",
-  },
-  description:
-    "Discover thoughtfully selected Indian ethnic wear for women, men and little ones. Explore sarees, kurta sets, festive wear and accessories at Terra Studios.",
-  openGraph: {
-    type: "website",
-    locale: "en_IN",
-    siteName: "Terra Studios",
-    images: ["/images/women/emerald-embroidered-anarkali-set.webp"],
-  },
-  twitter: { card: "summary_large_image" },
-};
+// Site-wide titles and sharing previews follow the store name and SEO text
+// set in admin, so a rename never leaves an old brand behind.
+export async function generateMetadata(): Promise<Metadata> {
+  const { settings: s } = await getStorefront().catch(() => ({
+    settings: {
+      storeName: "Workari",
+      seoTitle: "Workari",
+      seoDescription: "",
+      heroImage: "",
+    },
+  }));
+  return {
+    metadataBase: new URL(siteUrl),
+    title: { default: s.seoTitle, template: `%s | ${s.storeName}` },
+    description: s.seoDescription,
+    openGraph: {
+      type: "website",
+      locale: "en_IN",
+      siteName: s.storeName,
+      images: s.heroImage ? [s.heroImage] : [],
+    },
+    twitter: { card: "summary_large_image" },
+  };
+}
 export default function RootLayout({
   children,
 }: {

@@ -32,7 +32,11 @@ export default function Catalog({
   const [type, setType] = useState(params.get("type") || "all");
   const [query, setQuery] = useState(params.get("q") || "");
   const [budget, setBudget] = useState(10000000);
-  const [sort, setSort] = useState("featured");
+  const sortParam = () =>
+    ["new", "low", "high"].includes(params.get("sort") || "")
+      ? params.get("sort")!
+      : "featured";
+  const [sort, setSort] = useState(sortParam);
   const [available, setAvailable] = useState(false);
   const [sizes, setSizes] = useState<string[]>([]);
   const [colors, setColors] = useState<string[]>([]);
@@ -42,6 +46,7 @@ export default function Catalog({
     setCategory(params.get("category") || "all");
     setType(params.get("type") || "all");
     setQuery(params.get("q") || "");
+    setSort(sortParam());
     setBudget(10000000);
     setSizes([]);
     setColors([]);
@@ -64,7 +69,8 @@ export default function Catalog({
         if (p) apply(p);
       } catch {}
     }
-    const change = (e: Event) => apply((e as CustomEvent<StyleProfile | null>).detail);
+    const change = (e: Event) =>
+      apply((e as CustomEvent<StyleProfile | null>).detail);
     window.addEventListener("terra-style-updated", change);
     return () => window.removeEventListener("terra-style-updated", change);
   }, [curated]);
@@ -79,8 +85,9 @@ export default function Catalog({
     setColors([]);
   };
   const filtered = orderProducts(
-    (personalStyle ? styleMatches(products, personalStyle) : products).filter((p) =>
-      matchesFilters(p, { category, type, budget, available, sizes, colors }),
+    (personalStyle ? styleMatches(products, personalStyle) : products).filter(
+      (p) =>
+        matchesFilters(p, { category, type, budget, available, sizes, colors }),
     ),
     query,
     sort,
@@ -89,13 +96,16 @@ export default function Catalog({
     <section id="catalog" className="shell scroll-mt-40 pb-24 pt-12 md:py-16">
       <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="mb-2 text-[10px] font-bold uppercase tracking-[.2em] text-[#ff3f6c]">
+          <p className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.24em] text-[#e0315c]">
+            <span className="h-px w-6 bg-[#e0315c]" />
             {store.settings.catalogSubtitle}
           </p>
-          <h2 className="text-2xl font-extrabold tracking-tight text-[#282c3f] md:text-3xl">
+          <h2 className="font-display text-3xl font-semibold leading-tight text-[#3d1f35] md:text-[40px]">
             {store.settings.catalogTitle}
           </h2>
-          <p className="mt-2 text-xs text-[#9799a4]">{filtered.length} styles to discover</p>
+          <p className="mt-2 text-xs text-[#9a8592]">
+            {filtered.length} styles to discover
+          </p>
         </div>
         <label className="search-control search-input-shell flex w-full items-center gap-3 rounded-xl bg-[#f5f5f6] px-4 text-[#777b88] sm:w-80">
           <Search size={17} />
@@ -103,7 +113,7 @@ export default function Catalog({
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Try saree, anarkali or kurta set…"
+            placeholder="Try kurta set, kurti or co-ord…"
             className="min-w-0 flex-1 bg-transparent py-3 text-xs outline-none"
           />
           {query && (
@@ -116,8 +126,8 @@ export default function Catalog({
       {personalStyle && (
         <div className="mb-5 flex items-center justify-between rounded-lg bg-[#fff1f5] p-4 text-xs">
           <span>
-            Picked for your {moodLabels[personalStyle.mood].toLowerCase()} · {personalStyle.style}{" "}
-            preference
+            Picked for your {moodLabels[personalStyle.mood].toLowerCase()} ·{" "}
+            {personalStyle.style} preference
           </span>
           <button onClick={reset} className="font-bold text-[#ff3f6c]">
             Show all styles
@@ -145,7 +155,10 @@ export default function Catalog({
         />
         <div className="min-w-0">
           {(sizes.length > 0 || colors.length > 0) && (
-            <div className="mb-4 flex flex-wrap gap-2" aria-label="Selected filters">
+            <div
+              className="mb-4 flex flex-wrap gap-2"
+              aria-label="Selected filters"
+            >
               {sizes.map((s) => (
                 <button
                   key={s}
@@ -171,7 +184,8 @@ export default function Catalog({
             <p className="text-xs font-semibold">
               {category === "all"
                 ? "All departments"
-                : store.categories.find((c) => c.slug === category)?.label || category}
+                : store.categories.find((c) => c.slug === category)?.label ||
+                  category}
               {type !== "all" ? ` / ${type}` : ""}
             </p>
             <label className="flex items-center gap-2 text-xs text-[#777b8b]">
@@ -198,7 +212,9 @@ export default function Catalog({
           ) : (
             <div className="rounded-xl bg-[#faf9fb] px-6 py-16 text-center">
               <h3 className="text-xl font-bold">
-                {products.length ? "No pieces found" : "Our collection is coming soon"}
+                {products.length
+                  ? "No pieces found"
+                  : "Our collection is coming soon"}
               </h3>
               <p className="my-4 text-sm text-[#858896]">
                 {products.length

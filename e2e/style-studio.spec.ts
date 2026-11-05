@@ -75,7 +75,7 @@ test("quiz can be skipped, reopened and used for non-office moods", async ({
     dialog.getByRole("button", { name: "Little ones", exact: true }),
   ).toHaveCount(0);
   await dialog
-    .getByRole("button", { name: "Celebration mode", exact: true })
+    .getByRole("button", { name: "Campus cool", exact: true })
     .click();
   await dialog.getByRole("button", { name: "Continue", exact: true }).click();
   await dialog.getByRole("button", { name: "Continue", exact: true }).click();

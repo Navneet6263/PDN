@@ -61,8 +61,29 @@ export async function readProducts(
     _count: true,
   });
   const summary = new Map(ratings.map((r) => [r.productId, r]));
+  // Units sold in orders that went ahead; powers the Bestsellers row.
+  const sales = await db.orderItem.groupBy({
+    by: ["productId"],
+    where: {
+      productId: { in: products.map((p) => p.id) },
+      order: {
+        status: {
+          in: [
+            "confirmed",
+            "packed",
+            "shipped",
+            "out_for_delivery",
+            "delivered",
+          ],
+        },
+      },
+    },
+    _sum: { quantity: true },
+  });
+  const sold = new Map(sales.map((r) => [r.productId, r._sum.quantity || 0]));
   return products.map((p) => ({
     ...p,
+    sold: sold.get(p.id) || 0,
     reviewCount: summary.get(p.id)?._count || 0,
     ratingAverage: summary.get(p.id)?._avg.rating || null,
   }));

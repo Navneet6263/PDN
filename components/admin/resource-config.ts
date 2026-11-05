@@ -110,7 +110,7 @@ export const resources: Record<string, ResourceConfig> = {
     title: "Banners",
     description:
       "Hero banners appear at the top; promotion banners appear above the catalog. Lower position appears first. Schedule uses your local timezone. Preview the storefront after saving.",
-    columns: ["title", "slot", "position", "active"],
+    columns: ["title", "slot", "layout", "tone", "position", "active"],
     remove: true,
     blank: {
       title: "",
@@ -123,6 +123,8 @@ export const resources: Record<string, ResourceConfig> = {
       destination: "link",
       productIds: [],
       slot: "hero",
+      layout: "left",
+      tone: "light",
       position: 0,
       active: false,
       startsAt: null,
@@ -146,6 +148,20 @@ export const resources: Record<string, ResourceConfig> = {
         label: "Placement",
         type: "select",
         options: ["hero", "promo"],
+      },
+      {
+        key: "layout",
+        label: "Glass panel position",
+        type: "select",
+        options: ["left", "center", "right"],
+        hint: "Put the panel where the photo is empty, away from the face.",
+      },
+      {
+        key: "tone",
+        label: "Glass style",
+        type: "select",
+        options: ["light", "dark"],
+        hint: "Light frosted glass for bright photos, dark smoked glass for busy ones.",
       },
       { key: "position", label: "Display position", type: "number" },
       { key: "startsAt", label: "Start time (optional)", type: "datetime" },

@@ -8,7 +8,12 @@ import {
   planProducts,
 } from "../lib/style-planner";
 import { womenProducts } from "../scripts/women-catalog";
-const products = womenProducts.map((p, i) => ({ ...p, id: String(i) }));
+// Every launch product, drafts included, as if published.
+const products = womenProducts.map((p, i) => ({
+  ...p,
+  id: String(i),
+  published: true,
+}));
 test("the launch catalog fills a Monday–Saturday office plan with a bold Saturday", () => {
   const plan = planProducts(products, {
     ...initialProfile,

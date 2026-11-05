@@ -74,8 +74,8 @@ try {
       for (const [position, d] of womenDepartments.entries())
         await tx.storeCategory.upsert({
           where: { slug: d.slug },
-          create: { ...d, position, active: true },
-          update: { ...d, position, active: true },
+          create: { ...d, position },
+          update: { ...d, position },
         });
 
       const ids: Record<string, string> = {};
@@ -124,72 +124,94 @@ try {
         )
           await tx.banner.delete({ where: { id: b.id } });
       const img = (slug: string, n = "") => `/images/women/${slug}${n}.webp`;
-      const banners = [
-        {
-          id: "women-hero-festive",
-          slot: "hero",
-          position: 0,
-          eyebrow: "The festive edit",
-          title: "Draped in tradition. Made for you.",
-          subtitle:
-            "Banarasi sarees, embroidered Anarkalis and bridal lehengas for every celebration.",
-          image: img("emerald-embroidered-anarkali-set"),
-          buttonLabel: "Shop ethnic wear",
-          link: "/?category=ethnic-wear#catalog",
+      // Earlier festive/bridal banners do not fit Workari's workwear focus.
+      await tx.banner.deleteMany({
+        where: {
+          id: {
+            in: [
+              "women-hero-festive",
+              "women-hero-bridal",
+              "women-promo-jewellery",
+            ],
+          },
         },
+      });
+      const week = [
+        "powder-blue-chikan-kurta-set",
+        "sage-straight-kurta-set",
+        "rose-block-print-kurta-set",
+        "ivory-shirt-and-trouser-set",
+        "navy-geometric-kurta-set",
+        "teal-asymmetric-tunic-set",
+      ].map((s) => ids[s]);
+      const banners = [
         {
           id: "women-hero-workwear",
           slot: "hero",
+          position: 0,
+          layout: "left",
+          tone: "light",
+          eyebrow: "Workwear for women",
+          title: "Dressed for the meeting. Comfortable till the commute home.",
+          subtitle:
+            "Kurta sets, co-ords and kurtis made for your working week.",
+          image: img("ivory-shirt-and-trouser-set"),
+          buttonLabel: "Shop workwear",
+          link: "/?category=workwear-sets#catalog",
+        },
+        {
+          id: "women-hero-week",
+          slot: "hero",
           position: 1,
+          layout: "right",
+          tone: "light",
           eyebrow: "The workwear week",
           title: "Monday to Saturday, sorted.",
           subtitle:
-            "Six easy kurta sets and co-ords that take you from first meeting to last call.",
-          image: img("ivory-shirt-and-trouser-set"),
+            "Six easy sets that take you from first meeting to last call.",
+          image: img("powder-blue-chikan-kurta-set"),
           buttonLabel: "See the week",
           destination: "collection",
-          productIds: [
-            "powder-blue-chikan-kurta-set",
-            "sage-straight-kurta-set",
-            "rose-block-print-kurta-set",
-            "ivory-shirt-and-trouser-set",
-            "navy-geometric-kurta-set",
-            "teal-asymmetric-tunic-set",
-          ].map((s) => ids[s]),
+          productIds: week,
         },
         {
-          id: "women-hero-bridal",
+          id: "women-hero-kurtis",
           slot: "hero",
           position: 2,
-          eyebrow: "Wedding season",
-          title: "Your big day, in scarlet and gold.",
-          subtitle:
-            "Bridal lehengas, kundan jhumkas and potlis, ready for every ceremony.",
-          image: img("scarlet-bridal-lehenga-set"),
-          buttonLabel: "Shop bridal",
-          link: "/product/scarlet-bridal-lehenga-set",
+          layout: "left",
+          tone: "dark",
+          eyebrow: "Everyday cotton",
+          title: "Easy kurtis for long days.",
+          subtitle: "Breathable cotton in soft pastel shades.",
+          image: img("teal-asymmetric-tunic-set"),
+          buttonLabel: "Shop kurtis",
+          link: "/?category=kurtis#catalog",
         },
         {
           id: "women-promo-kurtis",
           slot: "promo",
           position: 0,
+          layout: "left",
+          tone: "light",
           eyebrow: "Everyday cotton",
-          title: "Kurtis under ₹999.",
-          subtitle: "Breathable block prints in blush, mint and lemon.",
+          title: "Kurtis under ₹999",
+          subtitle: "Block prints in blush, mint and lemon.",
           image: img("pastel-block-print-kurti-set"),
           buttonLabel: "Shop kurtis",
           link: "/product/pastel-block-print-kurti-set",
         },
         {
-          id: "women-promo-jewellery",
+          id: "women-promo-coords",
           slot: "promo",
           position: 1,
-          eyebrow: "Ready to gift",
-          title: "Jhumkas, potlis & more.",
-          subtitle: "The finishing touch for every festive look.",
-          image: img("kundan-jhumka-and-potli-set"),
-          buttonLabel: "Shop accessories",
-          link: "/?category=jewellery-accessories#catalog",
+          layout: "left",
+          tone: "dark",
+          eyebrow: "Boardroom ready",
+          title: "Shirt & trouser sets",
+          subtitle: "Two pieces you'll wear separately all week.",
+          image: img("ivory-shirt-and-trouser-set"),
+          buttonLabel: "Shop the set",
+          link: "/product/ivory-shirt-and-trouser-set",
         },
       ];
       for (const b of banners) {
@@ -228,27 +250,34 @@ try {
       ].filter(Boolean);
       const content = {
         ...current,
+        storeName: "Workari",
+        tagline: "Workwear for women",
         announcement: strip.join(" · "),
-        heroTitle: "Draped in tradition. Made for you.",
+        announcements: strip,
+        heroTitle:
+          "Dressed for the meeting. Comfortable till the commute home.",
         heroSubtitle:
-          "Sarees, Anarkalis, workwear and jewellery for every day and every celebration.",
-        heroEyebrow: "Women's fashion",
-        heroImage: img("emerald-embroidered-anarkali-set"),
-        heroButtonLabel: "Shop the collection",
-        heroLink: "/#catalog",
-        catalogTitle: "The collection",
-        catalogSubtitle: "Ethnic wear, workwear & accessories",
+          "Kurta sets, co-ords and kurtis made for your working week.",
+        heroEyebrow: "Workwear for women",
+        heroImage: img("ivory-shirt-and-trouser-set"),
+        heroButtonLabel: "Shop workwear",
+        heroLink: "/?category=workwear-sets#catalog",
+        catalogTitle: "Shop all workwear",
+        catalogSubtitle: "Kurta sets, co-ords & kurtis",
         topTenTitle: "Top picks this week",
         showTopTen: true,
         showStory: true,
-        storyTitle: "Made for every version of you.",
+        storyTitle: "Made for the woman who works.",
         storyText:
-          "From your Monday meeting to your best friend's sangeet, we design ethnic and workwear that feels like you: honest fabrics, careful finishing and prices that make sense.",
+          "Workari makes clothing for office days and everyday work: easy silhouettes, breathable fabrics and outfits that stay put from your first meeting to your commute home.",
         footerText:
-          "Women's ethnic wear, workwear and jewellery, chosen with care and delivered across India.",
-        seoTitle: "Terra Studios | Women's Ethnic Wear, Workwear & Jewellery",
+          "Workwear for women: kurta sets, co-ords and kurtis for your working week.",
+        newsletterTitle: "Be the first to know",
+        newsletterText:
+          "Hear about new arrivals and workwear edits first. No spam, unsubscribe anytime.",
+        seoTitle: "Workari | Workwear for Women: Kurta Sets, Co-ords & Kurtis",
         seoDescription:
-          "Shop sarees, Anarkalis, lehengas, kurta sets, workwear and jewellery for women. Free delivery over ₹999, cash on delivery and secure online payment.",
+          "Shop women's workwear from Workari: office kurta sets, shirt and trouser co-ords and everyday cotton kurtis, delivered across India.",
       };
       await tx.storeSettings.upsert({
         where: { id: "main" },
@@ -260,7 +289,7 @@ try {
     { timeout: 120000 },
   );
   console.log(
-    `Women's store ready: ${womenProducts.length} launch products, ${womenDepartments.length} departments, 3 hero banners, 2 promotions. Removed ${summary.removed} old demo listings${summary.hidden ? `; hid ${summary.hidden} old department(s) that still hold your own products` : ""}. Backup saved in data/backups.`,
+    `Workari store ready: ${womenProducts.filter((p) => p.published).length} workwear products live (${womenProducts.filter((p) => !p.published).length} occasion pieces kept as drafts), ${womenDepartments.filter((d) => d.active).length} departments, 3 hero banners, 2 promotions. Removed ${summary.removed} old demo listings${summary.hidden ? `; hid ${summary.hidden} old department(s) that still hold your own products` : ""}. Backup saved in data/backups.`,
   );
 } finally {
   await db.$disconnect();

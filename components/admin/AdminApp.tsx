@@ -16,6 +16,7 @@ import ProductTable from "./ProductTable";
 import AdminStats from "./AdminStats";
 import Dashboard from "./Dashboard";
 import OrdersPanel from "./OrdersPanel";
+import HomepagePanel from "./HomepagePanel";
 export default function AdminApp() {
   const [actor, setActor] = useState<Identity | null>(null);
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
@@ -153,7 +154,9 @@ export default function AdminApp() {
           </button>
         </div>
       )}
-      {page === "Orders" ? (
+      {page === "Homepage & Footer" ? (
+        <HomepagePanel onBanners={() => go("Banners")} />
+      ) : page === "Orders" ? (
         <OrdersPanel
           key={orderFilter}
           actor={actor}

@@ -1,12 +1,17 @@
 import { z } from "zod";
 import { imageSchema } from "./validation";
+import { homeSectionIds, trustIcons } from "../lib/store-types";
 const text = (max: number) => z.string().trim().max(max);
 export const localLink = text(300).regex(
   /^\/(?!\/)[^\s\\]*$/,
   "Use an internal link such as /?category=women#catalog",
 );
+const socialUrl = z
+  .union([z.literal(""), z.url({ protocol: /^https$/ }).max(300)])
+  .default("");
 export const settingsSchema = z.object({
   storeName: text(80).min(1),
+  tagline: text(60).default(""),
   announcement: text(250),
   heroTitle: text(150).min(1),
   heroSubtitle: text(500),
@@ -43,6 +48,37 @@ export const settingsSchema = z.object({
   codEnabled: z.boolean().default(true),
   codFee: z.number().min(0).max(100000).default(0),
   codMaxOrder: z.number().min(0).max(10000000).default(10000),
+  announcements: z.array(text(160).min(1)).max(6).default([]),
+  homeSections: z
+    .array(z.object({ id: z.enum(homeSectionIds), visible: z.boolean() }))
+    .max(homeSectionIds.length)
+    .refine(
+      (list) => new Set(list.map((s) => s.id)).size === list.length,
+      "Each section once",
+    )
+    .default(homeSectionIds.map((id) => ({ id, visible: true }))),
+  trustItems: z
+    .array(
+      z.object({
+        icon: z.enum(trustIcons),
+        title: text(60).min(1),
+        text: text(80),
+      }),
+    )
+    .max(6)
+    .default([]),
+  instagramUrl: socialUrl,
+  facebookUrl: socialUrl,
+  youtubeUrl: socialUrl,
+  pinterestUrl: socialUrl,
+  whatsappNumber: z
+    .union([
+      z.literal(""),
+      z.string().regex(/^\+?\d{10,15}$/, "Digits only, e.g. 917004023078"),
+    ])
+    .default(""),
+  newsletterTitle: text(80).default(""),
+  newsletterText: text(200).default(""),
 });
 export const categorySchema = z.object({
   slug: text(80).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
@@ -64,6 +100,8 @@ export const bannerSchema = z
     destination: z.enum(["link", "collection"]).default("link"),
     productIds: z.array(text(100).min(1)).max(100).default([]),
     slot: z.enum(["hero", "promo"]),
+    layout: z.enum(["left", "center", "right"]).default("left"),
+    tone: z.enum(["light", "dark"]).default("light"),
     position: z.number().int().min(0).max(1000),
     active: z.boolean(),
     startsAt: z.iso.datetime().nullable(),

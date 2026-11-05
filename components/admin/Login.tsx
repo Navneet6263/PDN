@@ -47,7 +47,7 @@ export default function Login({ onLogin }: { onLogin: () => void }) {
           <p className="mt-6 max-w-sm text-sm leading-7 text-white/70">
             Your pieces, your stories, your store.
             <br />
-            Welcome to the Terra workspace.
+            Welcome to your store workspace.
           </p>
         </div>
       </div>

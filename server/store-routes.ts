@@ -9,7 +9,7 @@ import {
   stockSchema,
 } from "./admin-schemas";
 import { body, fail } from "./route-utils";
-export function publicStoreRoutes(db: Database) {
+export function publicStoreRoutes(db: Database, onlinePayments = false) {
   const router = Router();
   router.get("/storefront", async (_req, res) => {
     const now = new Date();
@@ -34,6 +34,7 @@ export function publicStoreRoutes(db: Database) {
       settings: { ...defaultSettings, ...((row?.content as object) || {}) },
       categories,
       banners,
+      onlinePayments,
     });
   });
   return router;
@@ -54,17 +55,27 @@ export function storeAdminRoutes(db: Database) {
     res.json(content);
   });
   router.get("/categories", async (_req, res) =>
-    res.json(await db.storeCategory.findMany({ orderBy: [{ position: "asc" }, { label: "asc" }] })),
+    res.json(
+      await db.storeCategory.findMany({
+        orderBy: [{ position: "asc" }, { label: "asc" }],
+      }),
+    ),
   );
   router.post("/categories", async (req, res) =>
-    res.status(201).json(await db.storeCategory.create({ data: body(categorySchema, req) })),
+    res
+      .status(201)
+      .json(await db.storeCategory.create({ data: body(categorySchema, req) })),
   );
   router.put("/categories/:id", async (req, res) => {
     const data = body(categorySchema, req);
-    const row = await db.storeCategory.findUnique({ where: { id: String(req.params.id) } });
+    const row = await db.storeCategory.findUnique({
+      where: { id: String(req.params.id) },
+    });
     if (!row) throw fail("Category not found.", 404);
     if (row.slug !== data.slug)
-      throw fail("Category URL slug cannot change. Change its display name instead.");
+      throw fail(
+        "Category URL slug cannot change. Change its display name instead.",
+      );
     res.json(await db.storeCategory.update({ where: { id: row.id }, data }));
   });
   router.delete("/categories/:id", async (req, res) => {
@@ -74,12 +85,19 @@ export function storeAdminRoutes(db: Database) {
     });
     if (!row) throw fail("Category not found.", 404);
     if (row._count.products)
-      throw fail("Move products to another category before deleting this category.", 409);
+      throw fail(
+        "Move products to another category before deleting this category.",
+        409,
+      );
     await db.storeCategory.delete({ where: { id: row.id } });
     res.json({ ok: true });
   });
   router.get("/banners", async (_req, res) =>
-    res.json(await db.banner.findMany({ orderBy: [{ position: "asc" }, { id: "asc" }] })),
+    res.json(
+      await db.banner.findMany({
+        orderBy: [{ position: "asc" }, { id: "asc" }],
+      }),
+    ),
   );
   router.post("/banners", async (req, res) => {
     const data = body(bannerSchema, req);
@@ -88,7 +106,9 @@ export function storeAdminRoutes(db: Database) {
       (await db.product.count({ where: { id: { in: data.productIds } } })) !==
       data.productIds.length
     )
-      throw fail("Some selected products no longer exist. Update the selection.");
+      throw fail(
+        "Some selected products no longer exist. Update the selection.",
+      );
     res.status(201).json(await db.banner.create({ data }));
   });
   router.put("/banners/:id", async (req, res) => {
@@ -98,8 +118,12 @@ export function storeAdminRoutes(db: Database) {
       (await db.product.count({ where: { id: { in: data.productIds } } })) !==
       data.productIds.length
     )
-      throw fail("Some selected products no longer exist. Update the selection.");
-    res.json(await db.banner.update({ where: { id: String(req.params.id) }, data }));
+      throw fail(
+        "Some selected products no longer exist. Update the selection.",
+      );
+    res.json(
+      await db.banner.update({ where: { id: String(req.params.id) }, data }),
+    );
   });
   router.delete("/banners/:id", async (req, res) => {
     await db.banner.delete({ where: { id: String(req.params.id) } });
@@ -108,7 +132,11 @@ export function storeAdminRoutes(db: Database) {
   router.patch("/merchandising/:id", async (req, res) => {
     const data = body(merchSchema, req);
     res.json(
-      await db.product.update({ where: { id: String(req.params.id) }, data, select: { id: true } }),
+      await db.product.update({
+        where: { id: String(req.params.id) },
+        data,
+        select: { id: true },
+      }),
     );
   });
   router.patch("/inventory/:id", async (req, res) => {
@@ -119,9 +147,15 @@ export function storeAdminRoutes(db: Database) {
         where: { id, stock: data.delta < 0 ? { gt: 0 } : { lt: 1000000 } },
         data: { stock: { increment: data.delta } },
       });
-      if (!result.count) throw fail("Stock limit reached or product no longer exists.", 409);
+      if (!result.count)
+        throw fail("Stock limit reached or product no longer exists.", 409);
     } else await db.product.update({ where: { id }, data });
-    res.json(await db.product.findUnique({ where: { id }, select: { id: true, stock: true } }));
+    res.json(
+      await db.product.findUnique({
+        where: { id },
+        select: { id: true, stock: true },
+      }),
+    );
   });
   return router;
 }

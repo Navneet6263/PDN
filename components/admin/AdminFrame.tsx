@@ -8,6 +8,7 @@ import {
   FolderTree,
   Gauge,
   Image as ImageIcon,
+  LayoutTemplate,
   LifeBuoy,
   LogOut,
   Menu,
@@ -44,6 +45,7 @@ const groups: { title: string; items: [string, LucideIcon][] }[] = [
   {
     title: "Marketing",
     items: [
+      ["Homepage & Footer", LayoutTemplate],
       ["Banners", ImageIcon],
       ["Coupons", TicketPercent],
     ],

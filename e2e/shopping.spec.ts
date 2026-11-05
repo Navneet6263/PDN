@@ -10,8 +10,8 @@ test("spelling suggestions, guest bag, login, saved checkout and mobile layouts"
     await page.goto("/");
     await expect(page.getByRole("dialog")).toHaveCount(0);
     const search = page.getByRole("combobox", { name: "Search the store" });
-    await search.fill("sari");
-    await expect(page.getByText("Showing matches for “saree”")).toBeVisible();
+    await search.fill("kurtha");
+    await expect(page.getByText("Showing matches for “kurta”")).toBeVisible();
     await expect(page.locator("#search-suggestions li").first()).toBeVisible();
     await search.fill("pent");
     await expect(page.getByText("Showing matches for “pant”")).toBeVisible();

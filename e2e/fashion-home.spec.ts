@@ -10,7 +10,7 @@ test("fashion homepage, department navigation and header search work", async ({
 }) => {
   const products = await (await request.get("/api/products")).json();
   // Women-only launch catalog: every product has its own photo.
-  expect(products.length).toBeGreaterThanOrEqual(11);
+  expect(products.length).toBeGreaterThanOrEqual(7);
   expect(new Set(products.map((p: { image: string }) => p.image)).size).toBe(
     products.length,
   );
@@ -35,24 +35,25 @@ test("fashion homepage, department navigation and header search work", async ({
   });
   await page
     .getByRole("navigation", { name: "Main navigation", exact: true })
-    .getByRole("button", { name: "Ethnic Wear", exact: true })
+    .getByRole("button", { name: "Workwear Sets", exact: true })
     .click();
   await page
     .locator("header")
-    .getByRole("link", { name: "Sarees", exact: true })
+    .getByRole("link", { name: "Kurta Sets", exact: true })
     .click();
-  await expect(page).toHaveURL(/type=Sarees/);
+  await expect(page).toHaveURL(/type=Kurta(\+|%20)Sets/);
   await expect(page.locator("#catalog a h3")).toHaveCount(
-    products.filter((p: { subCategory: string }) => p.subCategory === "Sarees")
-      .length,
+    products.filter(
+      (p: { subCategory: string }) => p.subCategory === "Kurta Sets",
+    ).length,
   );
   await page
     .getByRole("combobox", { name: "Search the store" })
-    .fill("Banarasi");
+    .fill("Chikankari");
   await page.getByRole("combobox", { name: "Search the store" }).press("Enter");
   await expect(page.locator("#catalog a h3")).toHaveCount(1);
   await expect(page.locator("#catalog a h3")).toHaveText(
-    "Banarasi Zari Silk Saree",
+    "Powder Blue Chikankari Kurta Set",
   );
   await page.goto("/");
   await page
@@ -78,7 +79,7 @@ test("fashion homepage, department navigation and header search work", async ({
     name: "Mobile categories",
     exact: true,
   });
-  await mobile.locator("summary").filter({ hasText: "Workwear" }).click();
+  await mobile.locator("summary").filter({ hasText: "Workwear Sets" }).click();
   await mobile
     .getByRole("link", { name: "Shirt & Trouser Sets", exact: true })
     .click();
